@@ -1,0 +1,15 @@
+# DataSource Config
+spring:
+  datasource:
+    #driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://rm-uf6297v9jn0kv20s72o.mysql.rds.aliyuncs.com:3306/washcar_db
+    username: cw_admin
+    password: 8uHto4CHA@FL
+
+
+
+# Logger Config
+logging:
+  level:
+    com.baomidou.mybatisplus.samples: debug
+# MyBatis-Plus 配置
