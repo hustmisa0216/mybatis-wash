@@ -34,6 +34,17 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.8.2</version>
+        </dependency>
+
+        <dependency>
+        <groupId>org.netbeans.external</groupId>
+        <artifactId>org-apache-commons-lang3</artifactId>
+        <version>RELEASE130</version>
+    </dependency>
         <!-- lombok 代码简化 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
