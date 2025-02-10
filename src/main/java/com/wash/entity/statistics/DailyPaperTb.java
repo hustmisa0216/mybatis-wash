@@ -14,11 +14,11 @@ public class DailyPaperTb implements Serializable {
     private Integer newMachineCount;
     private Integer machineCount;
     private Integer userCount;
-    private Integer washUserCount;
-    private Integer washCount;
-    private Integer washDuration;
+    private Integer washUserCount; //洗车人数  当天的
+    private Integer washCount;    //洗车次数
+    private Integer washDuration; //洗车时长
     private Integer washCostAmount;
-    private Integer rechargeUserCount;
+    private Integer rechargeUserCount;//对应付费人数  当天的
     private Integer rechargeCount;
     private Integer rechargeAmount;
     private Integer vendorRechargeAmount;

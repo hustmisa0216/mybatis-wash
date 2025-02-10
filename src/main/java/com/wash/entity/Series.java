@@ -1,6 +1,7 @@
 package com.wash.entity;
 
 import com.wash.entity.data.*;
+import com.wash.entity.franchisee.FranchiseeSiteTb;
 import lombok.Data;
 
 import java.util.List;
@@ -14,15 +15,12 @@ import java.util.List;
 @Data
 public class Series {
     private PayTb payTb;
-
     private CommodityOrdersTb commodityOrderTb;
-
     private List<OrdersTb> ordersTbs;
-
-    private List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs;
-
     private List<VendorProfitSharingTb> vendorProfitSharingTbs;
 
+    private FranchiseeSiteTb franchiseeSiteTb;
+    private List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs;
 
     public Series(PayTb payTb) {
         this.payTb = payTb;

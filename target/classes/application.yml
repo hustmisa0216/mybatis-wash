@@ -1,8 +1,9 @@
 # DataSource Config
 spring:
   datasource:
+    driver-class-name : com.p6spy.engine.spy.P6SpyDriver
     #driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://rm-uf6297v9jn0kv20s72o.mysql.rds.aliyuncs.com:3306/washcar_db
+    url: jdbc:p6spy:mysql://rm-uf6297v9jn0kv20s72o.mysql.rds.aliyuncs.com:3306/washcar_db
     username: cw_admin
     password: 8uHto4CHA@FL
 
@@ -11,5 +12,5 @@ spring:
 # Logger Config
 logging:
   level:
-    com.baomidou.mybatisplus.samples: debug
+    com.wash: info
 # MyBatis-Plus 配置

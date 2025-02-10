@@ -1,5 +1,6 @@
 package com.wash.entity.data;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 @Data
@@ -15,7 +16,7 @@ public class PayTb {
     private Byte payFor; // 支付原因
     private Integer activityId; // 充值活动ID
     private String ipAddr; // 用户IP
-    private Boolean isSandbox; // 是否沙盒
+    private Integer isSandbox; // 是否沙盒
     private String transactionId; // 第三方Id
     private Long callbackAt; // 回调时间
     private Byte status; // 状态
@@ -28,4 +29,39 @@ public class PayTb {
     private String attach; // 附加信息
     private String payment; // 支付凭据
     private Integer flag; // 标示
+
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String date;
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String dateMonth;
+
+
+    public String toString(){
+        return String.join(",",
+                String.valueOf(id),
+                String.valueOf(uid),
+                paySn != null ? paySn : "",
+                agreementSn != null ? agreementSn : "",
+                String.valueOf(siteId),
+                String.valueOf(amount),
+                String.valueOf(refund),
+                String.valueOf(payType),
+                String.valueOf(payFor),
+                String.valueOf(activityId),
+                ipAddr != null ? ipAddr : "",
+                String.valueOf(isSandbox),
+                transactionId != null ? transactionId : "",
+                String.valueOf(callbackAt),
+                String.valueOf(status),
+                String.valueOf(createdAt),
+                String.valueOf(updatedAt),
+                ext != null ? ext : "",
+                String.valueOf(deletedAt),
+                String.valueOf(payFrom),
+                mchId != null ? mchId : "",
+                attach != null ? attach : "",
+                payment != null ? payment : "",
+                String.valueOf(flag)
+        );
+    }
 }

@@ -22,16 +22,6 @@
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="aliyun" />
-      <option name="name" value="aliyun" />
-      <option name="url" value="https://maven.aliyun.com/nexus/content/groups/public" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="snapshot" />
-      <option name="name" value="mp-snapshot" />
-      <option name="url" value="https://oss.sonatype.org/content/repositories/snapshots/" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="nexus-xintai-releases" />
       <option name="name" value="nexus-xintai-releases" />
       <option name="url" value="http://nexus.zhidaoauto.com/repository/maven-public/" />
@@ -40,11 +30,6 @@
       <option name="id" value="nexus-xintai-snapshots" />
       <option name="name" value="nexus-xintai-snapshots" />
       <option name="url" value="http://nexus.zhidaoauto.com/repository/maven-snapshots/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="oss-public" />
-      <option name="name" value="oss-public" />
-      <option name="url" value="https://oss.sonatype.org/content/repositories/public" />
     </remote-repository>
   </component>
 </project>

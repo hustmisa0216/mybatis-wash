@@ -1,12 +1,12 @@
 package com.wash.entity.data;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class OrdersTb implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class OrdersTb {
 
     private Integer id;
     private String orderId;
@@ -49,4 +49,53 @@ public class OrdersTb implements Serializable {
     private Integer statisticsAmount;
     private Integer flag;
 
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String date;
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String dateMonth;
+
+    public String toString() {
+        return String.join(",",
+                String.valueOf(id),
+                orderId != null ? orderId : "",
+                String.valueOf(type),
+                String.valueOf(siteId),
+                String.valueOf(machineId),
+                String.valueOf(uid),
+                plateNumber != null ? plateNumber : "",
+                userPhone != null ? userPhone : "",
+                String.valueOf(agencyUid),
+                String.valueOf(comboId),
+                String.valueOf(comboType),
+                String.valueOf(comboPrice),
+                String.valueOf(comboTime),
+                String.valueOf(paymentType),
+                voucherId != null ? voucherId : "",
+                paySn != null ? paySn : "",
+                String.valueOf(thirdPartyPayment),
+                String.valueOf(paymentMoney),
+                String.valueOf(paymentBalance),
+                String.valueOf(paymentPrepaid),
+                String.valueOf(paymentTotal),
+                String.valueOf(agencyProfit),
+                String.valueOf(status),
+                String.valueOf(washingStatus),
+                ext != null ? ext : "",
+                String.valueOf(startAt),
+                String.valueOf(endAt),
+                String.valueOf(createdAt),
+                String.valueOf(updatedAt),
+                String.valueOf(deletedAt),
+                String.valueOf(statisticsFlag),
+                String.valueOf(effectedAt),
+                commodityOrderId != null ? commodityOrderId : "",
+                String.valueOf(paidCancelAt),
+                String.valueOf(lat),
+                String.valueOf(lng),
+                String.valueOf(distance),
+                String.valueOf(os),
+                String.valueOf(statisticsAmount),
+                String.valueOf(flag)
+        );
+    }
 }
