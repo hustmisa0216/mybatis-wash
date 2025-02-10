@@ -1,5 +1,6 @@
 package com.wash.entity.data;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,6 +17,11 @@ public class VendorProfitSharingTb implements Serializable {
     private String transactionId;
     private Integer flag;
     private Long createdAt;
+
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String date;
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String dateMonth;
 
     @Override
     public String toString() {

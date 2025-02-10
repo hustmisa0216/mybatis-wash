@@ -1,5 +1,6 @@
 package com.wash.entity.data;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 @Data
@@ -28,6 +29,12 @@ public class PayTb {
     private String attach; // 附加信息
     private String payment; // 支付凭据
     private Integer flag; // 标示
+
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String date;
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String dateMonth;
+
 
     public String toString(){
         return String.join(",",

@@ -9,6 +9,7 @@ import com.wash.entity.data.*;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.mapper.*;
+import com.wash.service.date.DateGenerator;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +23,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class Select {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Select.class);
+public class Selecter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Selecter.class);
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
     private String vendorId = "3230";
     //private String siteId = "865";
@@ -56,6 +57,9 @@ public class Select {
     @Autowired
     private DateCache dateCache;
 
+    @Autowired
+    private DateGenerator dateGenerator;
+
     private static Calendar calendar = Calendar.getInstance();
 
     @PostConstruct
@@ -75,6 +79,7 @@ public class Select {
                 if (faSettlementTbRes == null) continue;
 
                 List<Series> resSeries = buildSeries(faSettlementTbRes, franchiseeSiteTb);
+
 
                 recorder.record(vendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
                 modifier.delete(vendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
@@ -162,6 +167,7 @@ public class Select {
                 .eq("site_id", franchiseeSiteTb.getSiteId());
 
         List<PayTb> payTbList = payTbMapper.selectList(payTbQueryWrapper);
+        payTbList.stream().forEach(i->dateGenerator.generateDate(i));
         return payTbList;
     }
 
@@ -256,6 +262,7 @@ public class Select {
                 }
                 CommodityOrdersTb commodityOrderTb = commodityOrderTbs.get(0);
                 series.setCommodityOrderTb(commodityOrderTb);
+                dateGenerator.generateDate(commodityOrderTb);
 
                 QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
                 commodityOrderProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
@@ -264,6 +271,7 @@ public class Select {
                 if (commodityOrderProfitSharingTbs == null || commodityOrderProfitSharingTbs.size() == 0) {
                     continue;
                 }
+                commodityOrderProfitSharingTbs.stream().forEach(i->dateGenerator.generateDate(i));
                 series.setCommodityOrderProfitSharingTbs(commodityOrderProfitSharingTbs);
                 DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
                 QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper<>();
@@ -275,6 +283,7 @@ public class Select {
                 if (vendorProfitSharingTbs == null || vendorProfitSharingTbs.size() == 0) {
                     continue;
                 }
+                vendorProfitSharingTbs.stream().forEach(i->dateGenerator.generateDate(i));
                 series.setVendorProfitSharingTbs(vendorProfitSharingTbs);
                 //结算额度
                 DoubleSummaryStatistics orderProfit = commodityOrderProfitSharingTbs.stream().collect(Collectors.summarizingDouble(CommodityOrderProfitSharingTb::getRechargeAmount));
@@ -308,6 +317,7 @@ public class Select {
                             resOrdersTbs.addAll(ordersTbs);
                         }
                     }
+                    ordersTbs.stream().forEach(i->dateGenerator.generateDate(i));
                     series.setOrdersTbs(ordersTbs);
                     seriesList.add(series);
                 }

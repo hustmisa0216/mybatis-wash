@@ -4,8 +4,37 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2cbf4aaf-49c1-424c-95fb-7e93d7b6a83f" name="更改" comment="">
+    <list default="true" id="940d9b23-b630-4d14-be68-d5d731bed994" name="更改" comment="更改">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/ModifierData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/date/DateGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/classes/com/wash/select/Select.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderConsumeTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderConsumeTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderProfitSharingTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderProfitSharingTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderTransactionTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderTransactionTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrdersTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrdersTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/OrdersTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/OrdersTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/PayTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/PayTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/VendorProfitSharingTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/VendorProfitSharingTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/statistics/DailyPaperTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/statistics/DailyPaperTb.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Modifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Modifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Select.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/baomidou/mybatisplus/samples/crud/CrudTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/Series.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/Series.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/constants/FilesEnum.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/constants/FilesEnum.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderConsumeTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderConsumeTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderProfitSharingTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderProfitSharingTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderTransactionTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderTransactionTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrdersTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrdersTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/OrdersTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/OrdersTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/PayTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/PayTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/VendorProfitSharingTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/VendorProfitSharingTb.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Modifier.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Modifier.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Recorder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Recorder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Select.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,18 +44,21 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="Enum" />
+        <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="2slLUR1kMCrekZiR84Fyk9UADZV" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -35,17 +67,38 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "正在合并 master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/mybatis-plus-sample-crud",
     "settings.editor.selected.configurable": "configurable.group.language",
-    "应用程序.CrudApplication.executor": "Debug"
+    "应用程序.CrudApplication.executor": "Debug",
+    "应用程序.ModifierData.executor": "Run"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.wash.mapper" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="ModifierData" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.wash.entity.ModifierData" />
+      <module name="springboot-learning" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.wash.entity.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="应用程序.ModifierData" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -62,33 +115,33 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Select.java</url>
-          <line>85</line>
+          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java</url>
+          <line>86</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Select.java</url>
-          <line>98</line>
+          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java</url>
+          <line>99</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Select.java</url>
-          <line>91</line>
+          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java</url>
+          <line>92</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Select.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java</url>
           <line>76</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Select.java</url>
-          <line>78</line>
+          <url>file://$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java</url>
+          <line>79</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/com/wash/entity/data/OrdersTb.java</url>
-          <line>7</line>
+          <line>8</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
       </breakpoints>

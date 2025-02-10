@@ -1,5 +1,6 @@
 package com.wash.entity.data;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -59,6 +60,12 @@ public class CommodityOrdersTb implements Serializable {
     private Integer freightCost;
     private String sets;
     private Integer flag;
+
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String date;
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String dateMonth;
+
     @Override
     public String toString() {
         return String.join(", ",

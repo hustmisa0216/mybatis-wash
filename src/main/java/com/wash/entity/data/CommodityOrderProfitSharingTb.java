@@ -28,4 +28,8 @@ public class CommodityOrderProfitSharingTb implements Serializable {
     private String desc;
     private Long createdAt;
 
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String date;
+    @TableField(exist = false) // 标记此字段不参与数据库操作
+    private String dateMonth;
 }
