@@ -3,8 +3,6 @@ package com.wash.entity.data;
 import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
 public class OrdersTb {
 

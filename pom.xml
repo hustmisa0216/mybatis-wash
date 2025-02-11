@@ -53,6 +53,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version> <!-- 请根据需要选择合适的版本 -->
+        </dependency>
+
         <!-- mybatis-plus 所需依赖  -->
         <dependency>
             <groupId>com.baomidou</groupId>

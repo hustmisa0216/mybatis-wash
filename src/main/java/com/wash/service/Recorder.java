@@ -17,9 +17,9 @@ import java.util.List;
 
 @Service
 public class Recorder {
-    private static final String FILE_PATH = "D:/mogo/wash/";
+    public  static final String FILE_PATH = "D:/mogo/wash/";
 
-    public void record(String vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList)
+    public void record(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList)
             throws Exception {
 
         int siteId = franchiseeSiteTb.getSiteId();
@@ -45,7 +45,7 @@ public class Recorder {
 
     }
 
-    public static void createFilesForVendor(String vendorId, int siteId, Integer date) {
+    public static void createFilesForVendor(int vendorId, int siteId, Integer date) {
         // 定义文件夹路径
         String folderPath = buildFileFolder(vendorId, siteId, date);
         File vendorSiteFolder = new File(folderPath);
@@ -86,7 +86,7 @@ public class Recorder {
         }
     }
 
-    private static String buildFileFolder(String vendorId, int siteId, Integer date) {
+    private static String buildFileFolder(int vendorId, int siteId, Integer date) {
         return FILE_PATH + vendorId + "/" + siteId + "/" + date+"/"; // 替换为实际路径
     }
 }

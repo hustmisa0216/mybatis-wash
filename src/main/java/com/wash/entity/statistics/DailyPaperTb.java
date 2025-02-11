@@ -15,8 +15,8 @@ public class DailyPaperTb implements Serializable {
     private Integer machineCount;
     private Integer userCount;
     private Integer washUserCount; //洗车人数  当天的
-    private Integer washCount;    //洗车次数
-    private Integer washDuration; //洗车时长
+    private Integer washCount;    //洗车次数  当天的
+    private Integer washDuration; //洗车时长   当天的
     private Integer washCostAmount;
     private Integer rechargeUserCount;//对应付费人数  当天的
     private Integer rechargeCount;
@@ -25,8 +25,8 @@ public class DailyPaperTb implements Serializable {
     private Integer cashbackAmount;
     private Integer directAmount;
     private Integer cardAmount;
-    private Long rechargeAmountTotal;
-    private Long vendorRechargeAmountTotal;
+    private Long rechargeAmountTotal;          //当天充
+    private Long vendorRechargeAmountTotal;    //当天充
     private Integer remainAmount;
     private Integer remainCallback;
     private Integer remainDirect;
@@ -72,8 +72,8 @@ public class DailyPaperTb implements Serializable {
     private Integer regAndPayAmount;
     private Long machineBreakDownDuration;
     private Long machineRunDuration;
-    private Integer curMonthPayAmount;
-    private Integer vendorCurMonthPayAmount;
+    private Integer curMonthPayAmount;      //当月的支付金额
+    private Integer vendorCurMonthPayAmount;//当月的 当月每天都要搞。。
     private Integer curMonthWashUserCount;
     private Integer curMonthRechargeUserCount;
     private Integer mallSuitAmount;

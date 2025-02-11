@@ -10,13 +10,13 @@ import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.mapper.*;
 import com.wash.service.date.DateGenerator;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -26,9 +26,6 @@ import java.util.stream.Collectors;
 public class Selecter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Selecter.class);
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
-    private String vendorId = "3230";
-    //private String siteId = "865";
-    private int inputDecAmount = 500;
 
     @Autowired
     private Recorder recorder;
@@ -48,7 +45,7 @@ public class Selecter {
     private FaSettlementTbMapper faSettlementTbMapper;
 
     @Autowired
-    private CommodityOrderTbsMapper commodityOrderTbMapper;
+    private CommodityOrdersTbMapper commodityOrdersTbMapper;
     @Autowired
     private OrdersTbMapper ordersTbMapper;
     @Autowired
@@ -62,28 +59,41 @@ public class Selecter {
 
     private static Calendar calendar = Calendar.getInstance();
 
-    @PostConstruct
-    public void select() {
+    public void select(Integer inputVendorId,Integer inputSiteId,Integer inputDate,Integer inputDecAmount) {
 
             //STEP0 获取vendor 场地
-            List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs();
+        List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
+        if(CollectionUtils.isEmpty(franchiseeSiteTbs)) return ;
 
             //每个场地单独处理
         for (FranchiseeSiteTb franchiseeSiteTb : franchiseeSiteTbs) {
+            if(inputSiteId!=null){
+                if(franchiseeSiteTb.getSiteId().intValue()!=inputSiteId.intValue())continue;
+            }
             try {
-                long start = System.currentTimeMillis();
-                DoubleSummaryStatistics todayVendorSum = getTodayIncome(franchiseeSiteTb);
+                FaSettlementTb faSettlementTbRes=null;
+                if(inputDate==null) {
+                    DoubleSummaryStatistics todayVendorSum = getTodayIncome(franchiseeSiteTb,inputVendorId);
+                     faSettlementTbRes = selectHistoryDate(franchiseeSiteTb, todayVendorSum,inputVendorId);
+                }else{
+                    List<FaSettlementTb> faSettlementTbs=faSettlementTbMapper.selectList(
+                            new QueryWrapper<FaSettlementTb>()
+                                    .eq("date",inputDate)
+                                    .eq("own_id",inputVendorId)
+                                    .eq("site_id",franchiseeSiteTb.getSiteId()));
+                    if(CollectionUtils.isNotEmpty(faSettlementTbs)){
+                        faSettlementTbRes=faSettlementTbs.get(0);
+                    }
+                }
 
-                System.out.println(System.currentTimeMillis() - start);
-                FaSettlementTb faSettlementTbRes = selectHistoryDate(franchiseeSiteTb, todayVendorSum);
                 if (faSettlementTbRes == null) continue;
 
-                List<Series> resSeries = buildSeries(faSettlementTbRes, franchiseeSiteTb);
+                List<Series> resSeries = buildSeries(faSettlementTbRes, franchiseeSiteTb,inputVendorId,inputDecAmount);
 
 
-                recorder.record(vendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
-                modifier.delete(vendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
-                modifier.update(vendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+                recorder.record(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+                modifier.delete(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+                modifier.update(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -91,40 +101,43 @@ public class Selecter {
         }
     }
 
-    private List<Series> buildSeries(FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb) throws ParseException {
+    private List<Series> buildSeries(FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb,Integer inputVendorId,Integer inputDecAmount) throws ParseException {
         //STEP1:获取选定日期的pay
         List<PayTb> payTbList = getPayTbsByDate(faSettlementTb.getDate()+"", franchiseeSiteTb);
         List<Series> originSeries=genOriginSeries(payTbList);
 
         List<Series> seriesList = null;
-        DecData decData = calculateAmount(payTbList);
+        DecData decData = calculateAmount(payTbList,inputDecAmount);
 
         if(faSettlementTb.getEarnings()>35000){
-            List<Series> list= filterSeriesByAmount(originSeries, decData);
-            seriesList= collectSeries(list, franchiseeSiteTb);
+            List<Series> list= filterSeriesByAmount(originSeries, decData,inputDecAmount);
+            seriesList= collectSeries(list, franchiseeSiteTb,inputVendorId,inputDecAmount);
         }else{
-            List<Series> list=collectSeries(originSeries,franchiseeSiteTb);
-            seriesList=filterSeriesByAmount(list,decData);
+            List<Series> list=collectSeries(originSeries,franchiseeSiteTb,inputVendorId,inputDecAmount);
+            seriesList=filterSeriesByAmount(list,decData,inputDecAmount);
         }
         return seriesList;
     }
 
-    private List<Series> filterSeriesByAmount(List<Series> seriesList, DecData decData) {
+    private List<Series> filterSeriesByAmount(List<Series> seriesList, DecData decData,Integer inputDecAmount) {
         int tempAmount=0;
         List<Series> resSeries = new ArrayList<>();
         Iterator<Series> iterator = seriesList.iterator();
+        int inputDec=inputDecAmount==null?9999999:inputDecAmount.intValue();
+
         for (int i = 4; i > 1; i--) {
             int k = 0;
             while (iterator.hasNext()) {
                 Series series = iterator.next();
-                if (series.getPayTb().getAmount() * 3 > decData.getSum()) {
+                if (series.getPayTb().getAmount() * 3 > decData.getSum()&&inputDecAmount==null) {
                     iterator.remove();
+                    continue;
                 }
                 if (k % i == 0) {
                     resSeries.add(series);
                     tempAmount += series.getPayTb().getAmount();
                     iterator.remove();
-                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDecAmount * 100) {
+                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDec ) {
                         break;
                     }
                 }
@@ -142,17 +155,18 @@ public class Selecter {
     }
 
     //根据选定history 的计算额度
-    public DecData calculateAmount(List<PayTb> payTbList) {
+    public DecData calculateAmount(List<PayTb> payTbList, Integer inputDecAmount) {
         DoubleSummaryStatistics stats = payTbList.stream()
                 .collect(Collectors.summarizingDouble(PayTb::getAmount));
         double sum = stats.getSum();
-        int decAmount = (int) (sum / 9);//程序内限制的amount,需要同事满足两个
+
+        int decAmount =inputDecAmount==null?inputDecAmount: (int) (sum / 9);//程序内限制的amount,需要同事满足两个
         return new DecData(sum, decAmount);
     }
 
-    private List<FranchiseeSiteTb> getFranchiseeSiteTbs() {
+    private List<FranchiseeSiteTb> getFranchiseeSiteTbs(Integer inputVendorId) {
         QueryWrapper<FranchiseeSiteTb> franchiseeTbQueryWrapper = new QueryWrapper();
-        franchiseeTbQueryWrapper.eq("own_id", vendorId);
+        franchiseeTbQueryWrapper.eq("own_id", inputVendorId);
         List<FranchiseeSiteTb> franchiseeSiteTbs = franchiseeSiteTbMapper.selectList(franchiseeTbQueryWrapper);
         return franchiseeSiteTbs;
     }
@@ -171,11 +185,11 @@ public class Selecter {
         return payTbList;
     }
 
-    private FaSettlementTb selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, DoubleSummaryStatistics todayVendorSum) {
+    private FaSettlementTb selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, DoubleSummaryStatistics todayVendorSum,Integer inputVendorId) {
         QueryWrapper<FaSettlementTb> faSettlementTbQueryWrapper = new QueryWrapper();
         faSettlementTbQueryWrapper
                 .eq("site_id", franchiseeSiteTb.getSiteId())
-                .eq("own_id", vendorId);
+                .eq("own_id", inputVendorId);
         List<FaSettlementTb> temp = faSettlementTbMapper.selectList(faSettlementTbQueryWrapper);
         if(temp==null||temp.size()<5){
             return null;
@@ -187,9 +201,9 @@ public class Selecter {
         }
         //过滤处理过的日期
         Set<String> dateSet = new HashSet<>();
-        if (dateCache.SITE_DATE_MAP.containsKey(vendorId)) {
-            if (dateCache.SITE_DATE_MAP.get(vendorId).containsKey(franchiseeSiteTb.getSiteId())) {
-                dateSet = dateCache.SITE_DATE_MAP.get(vendorId).get(franchiseeSiteTb.getSiteId());
+        if (dateCache.SITE_DATE_MAP.containsKey(inputVendorId)) {
+            if (dateCache.SITE_DATE_MAP.get(inputVendorId).containsKey(franchiseeSiteTb.getSiteId())) {
+                dateSet = dateCache.SITE_DATE_MAP.get(inputVendorId).get(franchiseeSiteTb.getSiteId());
             }
         }
 
@@ -213,12 +227,11 @@ public class Selecter {
             }
 
         }
-
         return res;
     }
 
     //先计算当天的income
-    private DoubleSummaryStatistics getTodayIncome(FranchiseeSiteTb franchiseeSiteTb) throws ParseException {
+    private DoubleSummaryStatistics getTodayIncome(FranchiseeSiteTb franchiseeSiteTb,Integer inputVendorId) throws ParseException {
         QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper();
 
         long time = System.currentTimeMillis();
@@ -235,7 +248,7 @@ public class Selecter {
         vendorProfitSharingTbQueryWrapper
                 .eq("site_id", franchiseeSiteTb.getSiteId())
                 .eq("type", 1)
-                .eq("vendor_id", vendorId)
+                .eq("vendor_id", inputVendorId)
                 .ge("created_at", lastDayTime)
                 .le("created_at", lastDayTime + 24 * 60 * 60);
 
@@ -246,9 +259,11 @@ public class Selecter {
     }
 
 
-    private List<Series> collectSeries(List<Series> originSeries, FranchiseeSiteTb franchiseeSiteTb) {
-        if (originSeries == null || originSeries.size() < 3) {
-            return null;
+    private List<Series> collectSeries(List<Series> originSeries, FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, Integer inputDecAmount) {
+        if (originSeries == null || originSeries.size() < 3) {//如果输入了金额 那就不管有几个单子了
+            if (inputDecAmount == null) {
+                return null;
+            }
         }
             List<Series> seriesList = new ArrayList<>();
             for (Series series : originSeries) {
@@ -256,7 +271,7 @@ public class Selecter {
                 PayTb payTb=series.getPayTb();
                 QueryWrapper<CommodityOrdersTb> commodityOrderTbQueryWrapper = new QueryWrapper<>();
                 commodityOrderTbQueryWrapper.eq("pay_sn", payTb.getPaySn()).eq("site_id", payTb.getSiteId());
-                List<CommodityOrdersTb> commodityOrderTbs = commodityOrderTbMapper.selectList(commodityOrderTbQueryWrapper);
+                List<CommodityOrdersTb> commodityOrderTbs = commodityOrdersTbMapper.selectList(commodityOrderTbQueryWrapper);
                 if (commodityOrderTbs == null || commodityOrderTbs.size() == 0) {
                     continue;
                 }
@@ -277,7 +292,7 @@ public class Selecter {
                 QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper<>();
                 vendorProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
                         .eq("type", 1)
-                        .eq("vendor_id", vendorId)
+                        .eq("vendor_id", inputVendorId)
                         .in("transaction_id", commodityOrderProfitSharingTbs.stream().map(i -> i.getTransactionId()).collect(Collectors.toList()));
                 List<VendorProfitSharingTb> vendorProfitSharingTbs = vendorProfitSharingTbMapper.selectList(vendorProfitSharingTbQueryWrapper);
                 if (vendorProfitSharingTbs == null || vendorProfitSharingTbs.size() == 0) {

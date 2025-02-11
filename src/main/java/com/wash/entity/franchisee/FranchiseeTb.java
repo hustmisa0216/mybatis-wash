@@ -35,8 +35,8 @@ public class FranchiseeTb implements Serializable {
     private String cardNo;
     private String bankName;
     private Integer settledAmount;
-    private Integer withdrawAmount;
     private Integer waitWithdraw;
+    private Integer withdrawAmount;
     private Integer advanceAmount;
     private Integer consumeAmount;
     private Integer deductionAmount;
@@ -46,8 +46,8 @@ public class FranchiseeTb implements Serializable {
     private Integer smsQuota;
     private Integer siteCount;
     private Integer machineCount;
-    private Integer stmtRechargeAmount;
-    private Integer stmtProfitAmount;
+    private Integer stmtRechargeAmount;//
+    private Integer stmtProfitAmount;//
     private Integer stmtUnsettledAmount;
     private Integer rechargeAmount;
     private Integer estimatedAmount;
