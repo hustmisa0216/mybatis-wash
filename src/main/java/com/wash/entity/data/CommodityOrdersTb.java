@@ -68,7 +68,7 @@ public class CommodityOrdersTb implements Serializable {
 
     @Override
     public String toString() {
-        return String.join(", ",
+        return String.join(",",
                 String.valueOf(id),
                 orderId != null ? orderId : "",
                 depositOrderId != null ? depositOrderId : "",
