@@ -2,6 +2,7 @@ package com.wash.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
 import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
 import com.wash.entity.data.CommodityOrdersTb;
@@ -48,10 +49,10 @@ public class Modifier {
     public void delete(int vendorId,FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList) {
 
         for(Series series:seriesList){
-//            payTbMapper.deleteById(series.getPayTb());
-//            ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
-//            commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
-//            vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
+            payTbMapper.deleteById(series.getPayTb());
+            ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
+            commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
+            vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
         }
 
     }
@@ -79,7 +80,7 @@ public class Modifier {
                     .setSql("vendor_recharge_amount_total = vendor_recharge_amount_total-"+rechargeAmount)
                     .setSql("cur_month_pay_amount = cur_month_pay_amount-"+monthTotalRecharege)
                     .setSql("vendor_cur_month_pay_amount = vendor_cur_month_pay_amount-"+monthTotalRecharege);
-          //  dailyPaperTbMapper.update(null,dailyPaperTbUpdateWrapper);
+            dailyPaperTbMapper.update(null,dailyPaperTbUpdateWrapper);
         }
 
         for(String date:modifierData.getDAY_INCOME_MAP().keySet()){
@@ -90,7 +91,7 @@ public class Modifier {
                     .eq("date",date)
                     .eq("site_id",faSettlementTbRes.getSiteId())
                     .setSql("earnings=earnings-"+income);
-          //  faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
+            faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
         }
 
         String curMonth=(modifierData.getFaSettlementTb().getDate()+"").substring(0,6);
@@ -116,8 +117,9 @@ public class Modifier {
                     .setSql("total_wash_count = total_wash_count-"+totalWashCount)
                     .setSql("wash_user_count = wash_user_count-"+chargeCount)
                     .setSql("wash_count = wash_count-"+washCount);
-            //monthPaperTbMapper.update(null,monthPaperTbUpdateWrapper);
+            monthPaperTbMapper.update(null,monthPaperTbUpdateWrapper);
         }
+
 
         UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapper=new UpdateWrapper<>();
         franchiseeTbUpdateWrapper.eq("id",vendorId)
@@ -125,7 +127,9 @@ public class Modifier {
                 .setSql("wait_withdraw = wait_withdraw-"+modifierData.getTotalIncome())
                 .setSql("stmt_recharge_amount = stmt_recharge_amount-"+modifierData.getTotalChargeAmount())
                 .setSql("stmt_profit_amount = stmt_profit_amount-"+modifierData.getTotalChargeAmount());
-        //franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
+       String v= franchiseeTbUpdateWrapper.getCustomSqlSegment();
+       franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
 
+        System.out.println(v);
     }
 }

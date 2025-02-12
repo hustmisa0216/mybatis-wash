@@ -35,12 +35,6 @@ public class ModifierData {
     private int vendorId;
     private int siteId;
     private FaSettlementTb faSettlementTb;
-    public ModifierData(FaSettlementTb faSettlementTb,List<Series> seriesList, int date, int siteId, int vendorId){
-        this.faSettlementTb=faSettlementTb;
-        this.seriesList=seriesList;
-        this.date=date;
-        this.vendorId=vendorId;this.siteId=siteId;
-    }
     private int totalChargeAmount;//充值是当天的
     private int totalIncome;
     private Map<String,AtomicInteger> DAY_INCOME_MAP=new HashMap<>();
@@ -56,6 +50,12 @@ public class ModifierData {
     private int first_wash_user_count=0;
     private int washCount=0;
 
+    public ModifierData(FaSettlementTb faSettlementTb,List<Series> seriesList, int date, int siteId, int vendorId){
+        this.faSettlementTb=faSettlementTb;
+        this.seriesList=seriesList;
+        this.date=date;
+        this.vendorId=vendorId;this.siteId=siteId;
+    }
     public void generateAmount() throws IOException {
 
         String selectDate=faSettlementTb.getDate()+"";
@@ -97,6 +97,7 @@ public class ModifierData {
         fileWriter.append(JSON.toJSONString(this));
         fileWriter.flush();
         newPayCount=payCount/2+1;
+
     }
 
     public static void main(String[] args){

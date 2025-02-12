@@ -34,11 +34,10 @@ public class VendorController {
         }
 
         try {
-            selecter.select(inputVendorId, inputSiteId, inputDate, inputDecAmount);
+           return ResponseEntity.ok(selecter.select(inputVendorId, inputSiteId, inputDate, inputDecAmount));
         } catch (Throwable e) {
             throw new RuntimeException(String.valueOf(e.getStackTrace()));
         }
         // 返回结果
-        return ResponseEntity.ok(result);
     }
 }
