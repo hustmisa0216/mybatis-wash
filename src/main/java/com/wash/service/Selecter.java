@@ -124,30 +124,27 @@ public class Selecter {
         List<Series> resSeries = new ArrayList<>();
         int inputDec=inputDecAmount==null?9999999:inputDecAmount.intValue();
 
-        Set<Integer> set = new HashSet<>();
+        Set<Integer> set=new HashSet<>();
         for (int i = 4; i > 1; i--) {
             Iterator<Series> iterator = seriesList.iterator();
             int k = 0;
             while (iterator.hasNext()) {
                 Series series = iterator.next();
-                if (series.getPayTb().getAmount() * 3 > decData.getSum() && inputDecAmount == null) {
-                    k++;
+                if (series.getPayTb().getAmount() * 3 > decData.getSum()&&inputDecAmount==null) {
                     continue;
                 }
-                if (set.contains(series.getPayTb().getId())) {
-                    k++;
-                    continue;
-                }
+                if(set.contains(series.getPayTb().getId()))continue;
                 if (k % i == 0) {
                     resSeries.add(series);
                     tempAmount += series.getPayTb().getAmount();
-                    set.add(series.getPayTb().getId());
-                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDec) {
+
+                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDec ) {
                         break;
                     }
                 }
                 k++;
             }
+
         }
         return resSeries;
     }

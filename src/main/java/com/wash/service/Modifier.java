@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,9 +55,10 @@ public class Modifier {
         }
 
     }
-    public void update(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) {
+    public void update(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
 
         ModifierData modifierData=new ModifierData(faSettlementTbRes,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId);
+        modifierData.generateAmount();
 
         for(String date:modifierData.getDAY_WASHCOUNT_MAP().keySet()){
         UpdateWrapper<DailyPaperTb> dailyPaperTbUpdateWrapper=new UpdateWrapper<>();
