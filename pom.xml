@@ -39,7 +39,11 @@
             <artifactId>p6spy</artifactId>
             <version>3.8.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.83</version> <!-- 请检查最新版本 -->
+        </dependency>
         <dependency>
         <groupId>org.netbeans.external</groupId>
         <artifactId>org-apache-commons-lang3</artifactId>

@@ -5,20 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1cb7471-94f7-4b72-8a8c-77a09d0751f7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Modifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Modifier.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/date/DateGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/date/DateGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/spy.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/spy.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrdersTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrdersTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/VendorProfitSharingTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/VendorProfitSharingTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Modifier.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Modifier.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Selecter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Selecter.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/date/DateGenerator.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/date/DateGenerator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/spy.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/spy.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/ModifierData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/ModifierData.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +25,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
@@ -53,12 +46,16 @@
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "正在合并 master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/mybatis-plus-sample-crud",
+    "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "editor.preferences.tabs",
+    "spring.configuration.checksum": "38b563dd2c4f257bad3d4553ccb457bd",
     "应用程序.CrudApplication.executor": "Debug",
     "应用程序.ModifierData.executor": "Run"
   }
@@ -105,13 +102,17 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
-      <changelist id="2cbf4aaf-49c1-424c-95fb-7e93d7b6a83f" name="更改" comment="" />
+      <changelist id="d1cb7471-94f7-4b72-8a8c-77a09d0751f7" name="Changes" comment="" />
       <created>1739025229697</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1739025229697</updated>
+      <workItem from="1739356611693" duration="1848000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -128,7 +129,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/com/wash/entity/ModifierData.java</url>
-          <line>104</line>
+          <line>112</line>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">

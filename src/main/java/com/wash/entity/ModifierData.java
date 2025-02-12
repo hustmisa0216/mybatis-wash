@@ -1,10 +1,14 @@
 package com.wash.entity;
 
+import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
 import com.wash.entity.statistics.FaSettlementTb;
+import com.wash.service.Recorder;
 import lombok.Data;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -52,7 +56,7 @@ public class ModifierData {
     private int first_wash_user_count=0;
     private int washCount=0;
 
-    public void generateAmount(){
+    public void generateAmount() throws IOException {
 
         String selectDate=faSettlementTb.getDate()+"";
         LocalDate startDate = LocalDate.of(Integer.valueOf(selectDate.substring(0,4)), Integer.valueOf(selectDate.substring(4,6)), Integer.valueOf(selectDate.substring(6,8)));
@@ -90,6 +94,10 @@ public class ModifierData {
         }
 
         newPayCount=payCount/2+1;
+
+        FileWriter fileWriter = new FileWriter(Recorder.FILE_PATH + FilesEnum.SERIES_JSON.getFileName(), true);
+
+
     }
 
     public static void main(String[] args){
