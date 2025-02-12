@@ -2,6 +2,7 @@ package com.wash.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
 import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
 import com.wash.entity.data.CommodityOrdersTb;
@@ -117,13 +118,16 @@ public class Modifier {
             //monthPaperTbMapper.update(null,monthPaperTbUpdateWrapper);
         }
 
+
         UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapper=new UpdateWrapper<>();
         franchiseeTbUpdateWrapper.eq("id",vendorId)
                 .setSql("settled_amount = settled_amount-"+modifierData.getTotalIncome())
                 .setSql("wait_withdraw = wait_withdraw-"+modifierData.getTotalIncome())
                 .setSql("stmt_recharge_amount = stmt_recharge_amount-"+modifierData.getTotalChargeAmount())
                 .setSql("stmt_profit_amount = stmt_profit_amount-"+modifierData.getTotalChargeAmount());
+       String v= franchiseeTbUpdateWrapper.getCustomSqlSegment();
         //franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
 
+        System.out.println(v);
     }
 }

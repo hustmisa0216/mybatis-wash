@@ -11,6 +11,7 @@ import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.mapper.*;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -304,19 +305,23 @@ public class Selecter {
                 series.setVendorProfitSharingTbs(vendorProfitSharingTbs);
                 //结算额度
                 DoubleSummaryStatistics orderProfit = commodityOrderProfitSharingTbs.stream().collect(Collectors.summarizingDouble(CommodityOrderProfitSharingTb::getRechargeAmount));
-                Long expireTime = commodityOrderTb.getVipExpiredAt() == null ? commodityOrderTb.getPrepaidExpiredAt() : commodityOrderTb.getVipExpiredAt();
-                if (expireTime == null) {
-                    expireTime = commodityOrderTb.getCreatedAt() + 24 * 60 * 60 * 30;
+                Long expireTime = commodityOrderTb.getVipExpiredAt() == 0 ? commodityOrderTb.getPrepaidExpiredAt() : commodityOrderTb.getVipExpiredAt();
+                if (expireTime == 0) {
+                    expireTime = commodityOrderTb.getCreatedAt() + commodityOrderTb.getCouponDuration();
                 }
 
+                String commodityOrderId=null;
+                if(deliveryMethodType==DeliveryMethodType.VIP_TIME){
+                    commodityOrderId=commodityOrderTb.getOrderId();
+                }
                 //结算完毕
                 if (orderProfit.getSum() == payTb.getAmount() || expireTime <= System.currentTimeMillis() / 1000) {
                     QueryWrapper<OrdersTb> ordersTbQueryWrapper = new QueryWrapper<>();
                     ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
-                            .eq("pay_sn", payTb.getPaySn())
                             .ge("created_at", commodityOrderTb.getCreatedAt())
                             .le("created_at", expireTime)
-                            .eq("site_id", payTb.getSiteId());
+                            .eq("site_id", payTb.getSiteId())
+                            .eq(StringUtils.isNotEmpty(commodityOrderId),"commodity_order_id",commodityOrderId);
                     List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
 
                     List<OrdersTb> resOrdersTbs = new ArrayList<>();
@@ -338,6 +343,7 @@ public class Selecter {
                     series.setOrdersTbs(ordersTbs);
                     seriesList.add(series);
                 }
+                LOGGER.info("dfffffffffffffff");
                 } catch (Exception e) {
                     LOGGER.error("{},e->{}", originSeries, ExceptionUtils.getStackTrace(e));
                     return null;

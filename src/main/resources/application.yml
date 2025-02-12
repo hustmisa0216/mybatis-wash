@@ -12,5 +12,8 @@ spring:
 # Logger Config
 logging:
   level:
-    com.wash: info
+    com.p6spy: info
+  file:
+    name: D:/logs/wash.log
+
 # MyBatis-Plus 配置
