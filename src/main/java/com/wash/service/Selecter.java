@@ -122,29 +122,31 @@ public class Selecter {
     private List<Series> filterSeriesByAmount(List<Series> seriesList, DecData decData,Integer inputDecAmount) {
         int tempAmount=0;
         List<Series> resSeries = new ArrayList<>();
-        Iterator<Series> iterator = seriesList.iterator();
         int inputDec=inputDecAmount==null?9999999:inputDecAmount.intValue();
 
+        Set<Integer> set = new HashSet<>();
         for (int i = 4; i > 1; i--) {
+            Iterator<Series> iterator = seriesList.iterator();
             int k = 0;
             while (iterator.hasNext()) {
                 Series series = iterator.next();
-                if (series.getPayTb().getAmount() * 3 > decData.getSum()&&inputDecAmount==null) {
-                    iterator.remove();
+                if (series.getPayTb().getAmount() * 3 > decData.getSum() && inputDecAmount == null) {
+                    k++;
+                    continue;
+                }
+                if (set.contains(series.getPayTb().getId())) {
+                    k++;
                     continue;
                 }
                 if (k % i == 0) {
                     resSeries.add(series);
                     tempAmount += series.getPayTb().getAmount();
-                    iterator.remove();
-                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDec ) {
+                    set.add(series.getPayTb().getId());
+                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDec) {
                         break;
                     }
                 }
                 k++;
-            }
-            if (tempAmount > decData.getDecAmount() || tempAmount > inputDecAmount * 100) {
-                break;
             }
         }
         return resSeries;
@@ -160,7 +162,7 @@ public class Selecter {
                 .collect(Collectors.summarizingDouble(PayTb::getAmount));
         double sum = stats.getSum();
 
-        int decAmount =inputDecAmount==null?inputDecAmount: (int) (sum / 9);//程序内限制的amount,需要同事满足两个
+        int decAmount =inputDecAmount!=null?inputDecAmount: (int) (sum / 9);//程序内限制的amount,需要同事满足两个
         return new DecData(sum, decAmount);
     }
 

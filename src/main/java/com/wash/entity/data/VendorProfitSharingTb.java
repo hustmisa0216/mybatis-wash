@@ -25,7 +25,7 @@ public class VendorProfitSharingTb implements Serializable {
 
     @Override
     public String toString() {
-        return String.join(", ",
+        return String.join(",",
                 String.valueOf(id),
                 String.valueOf(vendorId),
                 String.valueOf(siteId),

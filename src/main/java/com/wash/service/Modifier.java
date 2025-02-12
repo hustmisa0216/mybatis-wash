@@ -91,7 +91,7 @@ public class Modifier {
           //  faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
         }
 
-        String curMonth=modifierData.getFaSettlementTb().getDate()+"".substring(0,6);
+        String curMonth=(modifierData.getFaSettlementTb().getDate()+"").substring(0,6);
         int totalChargeAmount=0;
         int totalChargeCount=0;
         int totalWashCount=0;
@@ -124,9 +124,6 @@ public class Modifier {
                 .setSql("stmt_recharge_amount = stmt_recharge_amount-"+modifierData.getTotalChargeAmount())
                 .setSql("stmt_profit_amount = stmt_profit_amount-"+modifierData.getTotalChargeAmount());
         //franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
-
-
-
 
     }
 }

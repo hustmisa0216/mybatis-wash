@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 public class Recorder {
-    public  static final String FILE_PATH = "D:/mogo/wash/";
+    public  static final String FILE_PATH = "D:\\mogo\\wash\\";
 
     public void record(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList)
             throws Exception {
@@ -34,14 +34,27 @@ public class Recorder {
 
         for(Series series:seriesList){
             payWriter.append(series.getPayTb().toString()+"\n");
+            payWriter.flush();
+
             commodityOrderWriter.append(series.getCommodityOrderTb().toString()+"\n");
+            commodityOrderWriter.flush();
             for(OrdersTb ordersTb:series.getOrdersTbs()){
                 orderWriter.append(ordersTb.toString()+"\n");
+                orderWriter.flush();
             }
             for(VendorProfitSharingTb vendorProfitSharingTb:series.getVendorProfitSharingTbs()){
                 vendorProfitWriter.append(vendorProfitSharingTb.toString()+"\n");
+                vendorProfitWriter.flush();
             }
         }
+        payWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        payWriter.flush();
+        commodityOrderWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        commodityOrderWriter.flush();
+        orderWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        orderWriter.flush();
+        vendorProfitWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        vendorProfitWriter.flush();
 
     }
 
