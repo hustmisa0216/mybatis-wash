@@ -19,7 +19,7 @@ import java.util.Set;
 @Component
 public class DateCache {
 
-    public Map<String, Map<String, Set<String>>> SITE_DATE_MAP = new HashMap<>();
+    public Map<Integer, Map<Integer, Set<Integer>>> SITE_DATE_MAP = new HashMap<>();
 
     @PostConstruct
     public void reload() {
@@ -52,9 +52,9 @@ public class DateCache {
                                     if (length> 0) {
                                         String[] pathParts = path.split("\\\\");
                                         if (pathParts.length >= 3) {
-                                            String vendorId = pathParts[0]; // 3273
-                                            String siteId = pathParts[1]; // 951
-                                            String date = pathParts[2]; // 20240509
+                                            int vendorId = Integer.valueOf(pathParts[0]); // 3273
+                                            int siteId = Integer.valueOf(pathParts[1]); // 951
+                                            int date = Integer.valueOf(pathParts[2]); // 20240509
 
                                             // 存入 SITE_DATE_MAP
                                             SITE_DATE_MAP

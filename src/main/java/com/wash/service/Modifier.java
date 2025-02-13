@@ -154,7 +154,7 @@ public class Modifier {
         curWrapper
                 .eq("site_id", franchiseeSiteTb.getSiteId())
                 .ge("date", modifierData.getSelectDate())
-                .le("date", modifierData.getMonthLastDate())
+                .le("date", modifierData.getCurDate())
                 .setSql("recharge_amount_total = recharge_amount_total-"+rechargeAmount)
                 .setSql("vendor_recharge_amount_total = vendor_recharge_amount_total-"+rechargeAmount);
         dailyPaperTbMapper.update(null,curWrapper);

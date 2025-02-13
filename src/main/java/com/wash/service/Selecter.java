@@ -66,98 +66,104 @@ public class Selecter {
     private static Calendar calendar = Calendar.getInstance();
 
     @Transactional
-    public String select(Integer inputVendorId,Integer inputSiteId,Integer inputDate,Integer inputDecAmount) {
+    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) {
 
-            //STEP0 获取vendor 场地
+        //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
-        if(CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
+        if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
 
-            //每个场地单独处理
+        //每个场地单独处理
         for (FranchiseeSiteTb franchiseeSiteTb : franchiseeSiteTbs) {
-            if(inputSiteId!=null){
-                if(franchiseeSiteTb.getSiteId().intValue()!=inputSiteId.intValue())continue;
+            if (inputSiteId != null) {
+                if (franchiseeSiteTb.getSiteId().intValue() != inputSiteId.intValue()) continue;
             }
             try {
-                FaSettlementTb faSettlementTbRes=null;
-                if(inputDate==null) {
-                    DoubleSummaryStatistics todayVendorSum = getTodayIncome(franchiseeSiteTb,inputVendorId);
-                     faSettlementTbRes = selectHistoryDate(franchiseeSiteTb, todayVendorSum,inputVendorId);
-                }else{
-                    List<FaSettlementTb> faSettlementTbs=faSettlementTbMapper.selectList(
-                            new QueryWrapper<FaSettlementTb>()
-                                    .eq("date",inputDate)
-                                    .eq("own_id",inputVendorId)
-                                    .eq("site_id",franchiseeSiteTb.getSiteId()));
-                    if(CollectionUtils.isNotEmpty(faSettlementTbs)){
-                        faSettlementTbRes=faSettlementTbs.get(0);
+                FaSettlementTb faSettlementTbRes = null;
+                if (inputDate == null) {
+                    DoubleSummaryStatistics todayVendorSum = getTodayIncome(franchiseeSiteTb, inputVendorId);
+                    faSettlementTbRes = selectHistoryDate(franchiseeSiteTb, todayVendorSum, inputVendorId);
+                } else {
+                    if (judgeExists(inputVendorId, inputSiteId, inputDate)) {
+                        return "该日期已经处理,请谨慎输入";
+                    } else {
+                        List<FaSettlementTb> faSettlementTbs = faSettlementTbMapper.selectList(
+                                new QueryWrapper<FaSettlementTb>()
+                                        .eq("date", inputDate)
+                                        .eq("own_id", inputVendorId)
+                                        .eq("site_id", franchiseeSiteTb.getSiteId()));
+
+                        if (CollectionUtils.isNotEmpty(faSettlementTbs)) {
+                            faSettlementTbRes = faSettlementTbs.get(0);
+                        }
                     }
                 }
 
                 if (faSettlementTbRes == null) continue;
 
-                List<Series> resSeries = buildSeries(faSettlementTbRes, franchiseeSiteTb,inputVendorId,inputDecAmount);
+                List<Series> resSeries = buildSeries(faSettlementTbRes, franchiseeSiteTb, inputVendorId, inputDecAmount);
 
-                if(CollectionUtils.isEmpty(resSeries)){
+                if (CollectionUtils.isEmpty(resSeries)) {
                     return "未获取到任何条目";
                 }
                 recorder.record(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
                 Thread.sleep(200);
 
                 modifier.delete(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
-                String key=modifier.update(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+                String key = modifier.update(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
 
                 String path = buildFileFolder(inputVendorId, franchiseeSiteTb.getSiteId(), faSettlementTbRes.getDate());
                 FileWriter dateWriter = new FileWriter(path + FilesEnum.DATE.getFileName(), true);
                 dateWriter.write(key);
                 dateWriter.flush();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 return ExceptionUtils.getStackTrace(e);
             }
         }
         return "OK";
     }
 
-    private List<Series> buildSeries(FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb,Integer inputVendorId,Integer inputDecAmount) throws ParseException {
+    private List<Series> buildSeries(FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, Integer inputDecAmount) throws Throwable {
         //STEP1:获取选定日期的pay
-        List<PayTb> payTbList = getPayTbsByDate(faSettlementTb.getDate()+"", franchiseeSiteTb);
-        List<Series> originSeries=genOriginSeries(payTbList);
+        List<PayTb> payTbList = getPayTbsByDate(faSettlementTb.getDate() + "", franchiseeSiteTb);
+        List<Series> originSeries = genOriginSeries(payTbList);
 
         List<Series> seriesList = null;
-        DecData decData = calculateAmount(payTbList,inputDecAmount);
+        DecData decData = calculateAmount(payTbList, inputDecAmount);
 
-        if(faSettlementTb.getEarnings()>35000){
-            List<Series> list= filterSeriesByAmount(originSeries, decData,inputDecAmount);
-            seriesList= collectSeries(list, franchiseeSiteTb,inputVendorId,inputDecAmount);
-        }else{
-            List<Series> list=collectSeries(originSeries,franchiseeSiteTb,inputVendorId,inputDecAmount);
-            seriesList=filterSeriesByAmount(list,decData,inputDecAmount);
+        if (faSettlementTb.getEarnings() > 35000) {
+            List<Series> list = filterSeriesByAmount(originSeries, decData, inputDecAmount);
+            seriesList = collectSeries(list, franchiseeSiteTb, inputVendorId, inputDecAmount);
+        } else {
+            List<Series> list = collectSeries(originSeries, franchiseeSiteTb, inputVendorId, inputDecAmount);
+            seriesList = filterSeriesByAmount(list, decData, inputDecAmount);
         }
         return seriesList;
     }
 
-    private List<Series> filterSeriesByAmount(List<Series> seriesList, DecData decData,Integer inputDecAmount) {
-        int tempAmount=0;
+    private List<Series> filterSeriesByAmount(List<Series> seriesList, DecData decData, Integer inputDecAmount) {
+        int tempAmount = 0;
         List<Series> resSeries = new ArrayList<>();
-        int inputDec=inputDecAmount==null?9999999:inputDecAmount.intValue();
+        int inputDec = inputDecAmount == null ? 9999999 : inputDecAmount.intValue();
 
-        Set<Integer> set=new HashSet<>();
+        Set<Integer> set = new HashSet<>();
         for (int i = 4; i > 1; i--) {
             Iterator<Series> iterator = seriesList.iterator();
             int k = 0;
             while (iterator.hasNext()) {
                 Series series = iterator.next();
-                if (series.getPayTb().getAmount() * 3 > decData.getSum()&&inputDecAmount==null) {
+                if (series.getPayTb().getAmount() * 3 > decData.getSum() && inputDecAmount == null) {
                     k++;
                     continue;
                 }
-                if(set.contains(series.getPayTb().getId())){
-                    k++;continue;
+                if (set.contains(series.getPayTb().getId())) {
+                    k++;
+                    continue;
                 }
                 if (k % i == 0) {
                     resSeries.add(series);
                     tempAmount += series.getPayTb().getAmount();
                     set.add(series.getPayTb().getId());
-                    if (tempAmount > decData.getDecAmount() -500|| tempAmount > inputDec -500) {
+                    if (tempAmount > decData.getDecAmount() - 500 || tempAmount > inputDec - 500) {
                         return resSeries;
                     }
                 }
@@ -168,7 +174,7 @@ public class Selecter {
     }
 
     private List<Series> genOriginSeries(List<PayTb> payTbList) {
-        return payTbList.stream().map(i->new Series(i)).collect(Collectors.toList());
+        return payTbList.stream().map(i -> new Series(i)).collect(Collectors.toList());
     }
 
     //根据选定history 的计算额度
@@ -177,7 +183,7 @@ public class Selecter {
                 .collect(Collectors.summarizingDouble(PayTb::getAmount));
         double sum = stats.getSum();
 
-        int decAmount =inputDecAmount!=null?inputDecAmount: (int) (sum / 9);//程序内限制的amount,需要同事满足两个
+        int decAmount = inputDecAmount != null ? inputDecAmount : (int) (sum / 9);//程序内限制的amount,需要同事满足两个
         return new DecData(sum, decAmount);
     }
 
@@ -198,48 +204,41 @@ public class Selecter {
                 .eq("site_id", franchiseeSiteTb.getSiteId());
 
         List<PayTb> payTbList = payTbMapper.selectList(payTbQueryWrapper);
-        payTbList.stream().forEach(i->dateGenerator.generateDate(i));
+        payTbList.stream().forEach(i -> dateGenerator.generateDate(i));
         return payTbList;
     }
 
-    private FaSettlementTb selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, DoubleSummaryStatistics todayVendorSum,Integer inputVendorId) {
+    private FaSettlementTb selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, DoubleSummaryStatistics todayVendorSum, Integer inputVendorId) {
         QueryWrapper<FaSettlementTb> faSettlementTbQueryWrapper = new QueryWrapper();
         faSettlementTbQueryWrapper
                 .eq("site_id", franchiseeSiteTb.getSiteId())
                 .eq("own_id", inputVendorId);
         List<FaSettlementTb> temp = faSettlementTbMapper.selectList(faSettlementTbQueryWrapper);
-        if(temp==null||temp.size()<5){
+        if (temp == null || temp.size() < 5) {
             return null;
         }
-        List<FaSettlementTb> faSettlementTbs=temp.stream().filter(i->System.currentTimeMillis()/1000-i.getCreatedAt()>=25*24*60*60).collect(Collectors.toList());
+        List<FaSettlementTb> faSettlementTbs = temp.stream().filter(i -> System.currentTimeMillis() / 1000 - i.getCreatedAt() >= 25 * 24 * 60 * 60).collect(Collectors.toList());
 
         if (todayVendorSum.getSum() < 7800) {//低于这个就没必要了
             return null;
         }
-        //过滤处理过的日期
-        Set<String> dateSet = new HashSet<>();
-        if (dateCache.SITE_DATE_MAP.containsKey(inputVendorId)) {
-            if (dateCache.SITE_DATE_MAP.get(inputVendorId).containsKey(franchiseeSiteTb.getSiteId())) {
-                dateSet = dateCache.SITE_DATE_MAP.get(inputVendorId).get(franchiseeSiteTb.getSiteId());
-            }
-        }
 
 
         for (FaSettlementTb faSettlementTb : faSettlementTbs) {
-            if (!dateSet.contains(faSettlementTb.getDate())) {
+            if (!judgeExists(inputVendorId, faSettlementTb.getSiteId(), faSettlementTb.getDate())) {
                 if (Math.abs(faSettlementTb.getEarnings() - todayVendorSum.getSum()) < 3000) {
                     return faSettlementTb;
                 }
             }
         }
 
-        FaSettlementTb res=null;
+        FaSettlementTb res = null;
         double minDiff = 9999999;
         for (FaSettlementTb faSettlementTb : faSettlementTbs) {
-            if (!dateSet.contains(faSettlementTb.getDate())) {
-               if(Math.abs(faSettlementTb.getEarnings() - todayVendorSum.getSum())<minDiff){
-                   minDiff=Math.abs(faSettlementTb.getEarnings() - todayVendorSum.getSum());
-                   res=faSettlementTb;
+            if (!judgeExists(inputVendorId, faSettlementTb.getSiteId(), faSettlementTb.getDate())) {
+                if (Math.abs(faSettlementTb.getEarnings() - todayVendorSum.getSum()) < minDiff) {
+                    minDiff = Math.abs(faSettlementTb.getEarnings() - todayVendorSum.getSum());
+                    res = faSettlementTb;
                 }
             }
 
@@ -247,8 +246,18 @@ public class Selecter {
         return res;
     }
 
+    public boolean judgeExists(int inputVendorId, int siteId, int date) {
+        Set<Integer> dateSet = new HashSet<>();
+        if (dateCache.SITE_DATE_MAP.containsKey(inputVendorId)) {
+            if (dateCache.SITE_DATE_MAP.get(inputVendorId).containsKey(siteId)) {
+                dateSet = dateCache.SITE_DATE_MAP.get(inputVendorId).get(siteId);
+            }
+        }
+        return dateSet.contains(date);
+    }
+
     //先计算当天的income
-    private DoubleSummaryStatistics getTodayIncome(FranchiseeSiteTb franchiseeSiteTb,Integer inputVendorId) throws ParseException {
+    private DoubleSummaryStatistics getTodayIncome(FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId) throws ParseException {
         QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper();
 
         long time = System.currentTimeMillis();
@@ -276,16 +285,16 @@ public class Selecter {
     }
 
 
-    private List<Series> collectSeries(List<Series> originSeries, FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, Integer inputDecAmount) {
+    private List<Series> collectSeries(List<Series> originSeries, FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, Integer inputDecAmount) throws Throwable {
         if (originSeries == null || originSeries.size() < 3) {//如果输入了金额 那就不管有几个单子了
             if (inputDecAmount == null) {
                 return null;
             }
         }
-            List<Series> seriesList = new ArrayList<>();
-            for (Series series : originSeries) {
-                try {
-                PayTb payTb=series.getPayTb();
+        List<Series> seriesList = new ArrayList<>();
+        for (Series series : originSeries) {
+            try {
+                PayTb payTb = series.getPayTb();
                 QueryWrapper<CommodityOrdersTb> commodityOrderTbQueryWrapper = new QueryWrapper<>();
                 commodityOrderTbQueryWrapper.eq("pay_sn", payTb.getPaySn()).eq("site_id", payTb.getSiteId());
                 List<CommodityOrdersTb> commodityOrderTbs = commodityOrdersTbMapper.selectList(commodityOrderTbQueryWrapper);
@@ -303,7 +312,7 @@ public class Selecter {
                 if (commodityOrderProfitSharingTbs == null || commodityOrderProfitSharingTbs.size() == 0) {
                     continue;
                 }
-                commodityOrderProfitSharingTbs.stream().forEach(i->dateGenerator.generateDate(i));
+                commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
                 series.setCommodityOrderProfitSharingTbs(commodityOrderProfitSharingTbs);
                 DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
                 QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper<>();
@@ -315,7 +324,7 @@ public class Selecter {
                 if (vendorProfitSharingTbs == null || vendorProfitSharingTbs.size() == 0) {
                     continue;
                 }
-                vendorProfitSharingTbs.stream().forEach(i->dateGenerator.generateDate(i));
+                vendorProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
                 series.setVendorProfitSharingTbs(vendorProfitSharingTbs);
                 //结算额度
                 DoubleSummaryStatistics orderProfit = commodityOrderProfitSharingTbs.stream().collect(Collectors.summarizingDouble(CommodityOrderProfitSharingTb::getRechargeAmount));
@@ -324,9 +333,9 @@ public class Selecter {
                     expireTime = commodityOrderTb.getCreatedAt() + commodityOrderTb.getCouponDuration();
                 }
 
-                String commodityOrderId=null;
-                if(deliveryMethodType==DeliveryMethodType.VIP_TIME){
-                    commodityOrderId=commodityOrderTb.getOrderId();
+                String commodityOrderId = null;
+                if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
+                    commodityOrderId = commodityOrderTb.getOrderId();
                 }
                 //结算完毕
                 if (orderProfit.getSum() == payTb.getAmount() || expireTime <= System.currentTimeMillis() / 1000) {
@@ -335,13 +344,13 @@ public class Selecter {
                             .ge("created_at", commodityOrderTb.getCreatedAt())
                             .le("created_at", expireTime)
                             .eq("site_id", payTb.getSiteId())
-                            .eq(StringUtils.isNotEmpty(commodityOrderId),"commodity_order_id",commodityOrderId);
+                            .eq(StringUtils.isNotEmpty(commodityOrderId), "commodity_order_id", commodityOrderId);
                     List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
 
                     List<OrdersTb> resOrdersTbs = new ArrayList<>();
                     //次卡是否都是一次？
                     if (ordersTbs != null && ordersTbs.size() > 0) {
-                        if (deliveryMethodType == DeliveryMethodType.PER_USE_CARD) {
+                        if (deliveryMethodType == DeliveryMethodType.COUPON_WASHING) {
                             resOrdersTbs.add(ordersTbs.get(0));
                         } else if (deliveryMethodType == DeliveryMethodType.PREPAID) {
                             if (ordersTbs.size() >= commodityOrderProfitSharingTbs.size()) {
@@ -353,17 +362,16 @@ public class Selecter {
                             resOrdersTbs.addAll(ordersTbs);
                         }
                     }
-                    ordersTbs.stream().forEach(i->dateGenerator.generateDate(i));
+                    ordersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
                     series.setOrdersTbs(ordersTbs);
                     seriesList.add(series);
                 }
-                LOGGER.info("dfffffffffffffff");
-                } catch (Exception e) {
-                    LOGGER.error("{},e->{}", originSeries, ExceptionUtils.getStackTrace(e));
-                    return null;
-                }
+            } catch (Exception e) {
+                LOGGER.error("{},e->{}", originSeries, ExceptionUtils.getStackTrace(e));
+                throw new Throwable(ExceptionUtils.getStackTrace(e));
             }
-            return seriesList;
+        }
+        return seriesList;
 
     }
 
