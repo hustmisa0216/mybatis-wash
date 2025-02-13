@@ -5,6 +5,7 @@ import com.wash.cache.DateCache;
 import com.wash.entity.DecData;
 import com.wash.entity.Series;
 import com.wash.entity.constants.DeliveryMethodType;
+import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.*;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.statistics.FaSettlementTb;
@@ -17,11 +18,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.wash.service.Recorder.buildFileFolder;
 
 @Component
 public class Selecter {
@@ -60,11 +65,12 @@ public class Selecter {
 
     private static Calendar calendar = Calendar.getInstance();
 
-    public void select(Integer inputVendorId,Integer inputSiteId,Integer inputDate,Integer inputDecAmount) {
+    @Transactional
+    public String select(Integer inputVendorId,Integer inputSiteId,Integer inputDate,Integer inputDecAmount) {
 
             //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
-        if(CollectionUtils.isEmpty(franchiseeSiteTbs)) return ;
+        if(CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
 
             //每个场地单独处理
         for (FranchiseeSiteTb franchiseeSiteTb : franchiseeSiteTbs) {
@@ -91,15 +97,24 @@ public class Selecter {
 
                 List<Series> resSeries = buildSeries(faSettlementTbRes, franchiseeSiteTb,inputVendorId,inputDecAmount);
 
-
+                if(CollectionUtils.isEmpty(resSeries)){
+                    return "未获取到任何条目";
+                }
                 recorder.record(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
-                modifier.delete(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
-                modifier.update(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+                Thread.sleep(200);
 
+                modifier.delete(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+                String key=modifier.update(inputVendorId, faSettlementTbRes, franchiseeSiteTb, resSeries);
+
+                String path = buildFileFolder(inputVendorId, franchiseeSiteTb.getSiteId(), faSettlementTbRes.getDate());
+                FileWriter dateWriter = new FileWriter(path + FilesEnum.DATE.getFileName(), true);
+                dateWriter.write(key);
+                dateWriter.flush();
             } catch (Exception e) {
-                e.printStackTrace();
+                return ExceptionUtils.getStackTrace(e);
             }
         }
+        return "OK";
     }
 
     private List<Series> buildSeries(FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb,Integer inputVendorId,Integer inputDecAmount) throws ParseException {
@@ -125,26 +140,25 @@ public class Selecter {
         List<Series> resSeries = new ArrayList<>();
         int inputDec=inputDecAmount==null?9999999:inputDecAmount.intValue();
 
-        Set<Integer> set = new HashSet<>();
+        Set<Integer> set=new HashSet<>();
         for (int i = 4; i > 1; i--) {
             Iterator<Series> iterator = seriesList.iterator();
             int k = 0;
             while (iterator.hasNext()) {
                 Series series = iterator.next();
-                if (series.getPayTb().getAmount() * 3 > decData.getSum() && inputDecAmount == null) {
+                if (series.getPayTb().getAmount() * 3 > decData.getSum()&&inputDecAmount==null) {
                     k++;
                     continue;
                 }
-                if (set.contains(series.getPayTb().getId())) {
-                    k++;
-                    continue;
+                if(set.contains(series.getPayTb().getId())){
+                    k++;continue;
                 }
                 if (k % i == 0) {
                     resSeries.add(series);
                     tempAmount += series.getPayTb().getAmount();
                     set.add(series.getPayTb().getId());
-                    if (tempAmount > decData.getDecAmount() || tempAmount > inputDec) {
-                        break;
+                    if (tempAmount > decData.getDecAmount() -500|| tempAmount > inputDec -500) {
+                        return resSeries;
                     }
                 }
                 k++;

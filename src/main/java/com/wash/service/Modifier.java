@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,59 +49,30 @@ public class Modifier {
     public void delete(int vendorId,FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList) {
 
         for(Series series:seriesList){
-//            payTbMapper.deleteById(series.getPayTb());
-//            ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
-//            commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
-//            vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
+            payTbMapper.deleteById(series.getPayTb());
+            ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
+            commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
+            vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
         }
 
     }
-    public void update(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) {
+    public String update(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
 
         ModifierData modifierData=new ModifierData(faSettlementTbRes,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId);
+        modifierData.generateAmount();
 
-        for(String date:modifierData.getDAY_WASHCOUNT_MAP().keySet()){
-        UpdateWrapper<DailyPaperTb> dailyPaperTbUpdateWrapper=new UpdateWrapper<>();
-            int washCount=modifierData.getDAY_WASHCOUNT_MAP().getOrDefault(date,new AtomicInteger(0)).get();
-            int washDuration=modifierData.getDAY_WASHTIME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
-            int rechargeCount= StringUtils.equals(faSettlementTbRes.getDate()+"",date)?resSeries.size():0;
-            int rechargeAmount=StringUtils.equals(faSettlementTbRes.getDate()+"",date)?modifierData.getTotalChargeAmount():0;//当天的
-            int monthTotalRecharege=modifierData.getDAY_CHARGEAMOUNT_MAP().getOrDefault(date,new AtomicInteger(0)).get();
+        modifierDailyPaper(franchiseeSiteTb, modifierData);
+        modifierFaSettlement(vendorId, faSettlementTbRes, modifierData);
 
-            dailyPaperTbUpdateWrapper
-                    .eq("site_id",franchiseeSiteTb.getSiteId())
-                    .eq("date",date)
-                    .setSql("wash_user_count = wash_user_count-"+washCount)
-                    .setSql("wash_count = wash_count-"+washCount)
-                    .setSql("wash_duration = wash_duration-"+washDuration)
-                    .setSql("recharge_user_count = recharge_user_count-"+rechargeCount)
-                    .setSql("recharge_amount_total = recharge_amount_total-"+rechargeAmount)
-                    .setSql("vendor_recharge_amount_total = vendor_recharge_amount_total-"+rechargeAmount)
-                    .setSql("cur_month_pay_amount = cur_month_pay_amount-"+monthTotalRecharege)
-                    .setSql("vendor_cur_month_pay_amount = vendor_cur_month_pay_amount-"+monthTotalRecharege);
-          //  dailyPaperTbMapper.update(null,dailyPaperTbUpdateWrapper);
-        }
-
-        for(String date:modifierData.getDAY_INCOME_MAP().keySet()){
-        UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper=new UpdateWrapper<>();
-            int income=modifierData.getDAY_INCOME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
-            faSettlementTbUpdateWrapper
-                    .eq("own_id",vendorId)
-                    .eq("date",date)
-                    .eq("site_id",faSettlementTbRes.getSiteId())
-                    .setSql("earnings=earnings-"+income);
-          //  faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
-        }
-
-        String curMonth=(modifierData.getFaSettlementTb().getDate()+"").substring(0,6);
+        int selectMonth= modifierData.getSelectMonth();
         int totalChargeAmount=0;
         int totalChargeCount=0;
         int totalWashCount=0;
-        for(String date:modifierData.getMONTH_CHARGE_MAP().keySet()){
+        for(int date:modifierData.getMONTH_CHARGE_MAP().keySet()){
             UpdateWrapper<MonthPaperTb> monthPaperTbUpdateWrapper=new UpdateWrapper<>();
-            int chargeAmount=StringUtils.equals(date,curMonth)?modifierData.getTotalChargeAmount():0;
+            int chargeAmount=date==selectMonth?modifierData.getTotalChargeAmount():0;
             totalChargeAmount+=chargeAmount;
-            int chargeCount=StringUtils.equals(date,curMonth)?modifierData.getPayCount():0;
+            int chargeCount=date==selectMonth?modifierData.getPayCount():0;
             totalChargeCount+=chargeCount;
             int washCount=modifierData.getMONTH_WASHCOUNT_MAP().getOrDefault(date,new AtomicInteger(0)).get();
             totalWashCount+=washCount;
@@ -108,16 +80,15 @@ public class Modifier {
                     .eq("date",date)
                     .eq("site_id",faSettlementTbRes.getSiteId())
                     .setSql("vendor_recharge_amount = vendor_recharge_amount-"+chargeAmount)
-                    .setSql("vendor_total_recharge_amount= vendor_total_recharge_amount-"+totalChargeAmount)
-                    .setSql("recharge_count = recharge_count-"+chargeCount)
-                    .setSql("all_third_pay_usr_count = all_third_pay_usr_count-"+totalChargeCount)
-                    .setSql("total_wash_user_count = total_wash_user_count-"+chargeCount)
-                    .setSql("total_wash_count = total_wash_count-"+totalWashCount)
-                    .setSql("wash_user_count = wash_user_count-"+chargeCount)
-                    .setSql("wash_count = wash_count-"+washCount);
-            //monthPaperTbMapper.update(null,monthPaperTbUpdateWrapper);
+                    .setSql(totalChargeAmount!=0,"vendor_total_recharge_amount= vendor_total_recharge_amount-"+totalChargeAmount)
+                    .setSql(chargeCount!=0,"recharge_count = recharge_count-"+chargeCount)
+                    .setSql(totalChargeCount!=0,"all_third_pay_usr_count = all_third_pay_usr_count-"+totalChargeCount)
+                    .setSql(totalChargeCount!=0,"total_wash_user_count = total_wash_user_count-"+totalChargeCount)
+                    .setSql(totalWashCount!=0,"total_wash_count = total_wash_count-"+totalWashCount)
+                    .setSql(chargeCount!=0,"wash_user_count = wash_user_count-"+chargeCount)
+                    .setSql(washCount!=0,"wash_count = wash_count-"+washCount);
+            monthPaperTbMapper.update(null,monthPaperTbUpdateWrapper);
         }
-
 
         UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapper=new UpdateWrapper<>();
         franchiseeTbUpdateWrapper.eq("id",vendorId)
@@ -125,9 +96,68 @@ public class Modifier {
                 .setSql("wait_withdraw = wait_withdraw-"+modifierData.getTotalIncome())
                 .setSql("stmt_recharge_amount = stmt_recharge_amount-"+modifierData.getTotalChargeAmount())
                 .setSql("stmt_profit_amount = stmt_profit_amount-"+modifierData.getTotalChargeAmount());
-       String v= franchiseeTbUpdateWrapper.getCustomSqlSegment();
-        //franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
+       franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
 
-        System.out.println(v);
+       return modifierData.getKey();
+    }
+
+    private void modifierFaSettlement(int vendorId, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
+        for(String date: modifierData.getDAY_INCOME_MAP().keySet()){
+        UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper=new UpdateWrapper<>();
+            int income= modifierData.getDAY_INCOME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
+            faSettlementTbUpdateWrapper
+                    .eq("own_id", vendorId)
+                    .eq("date",date)
+                    .eq("site_id", faSettlementTbRes.getSiteId())
+                    .setSql("earnings=earnings-"+income);
+            faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
+        }
+    }
+
+    private void modifierDailyPaper(FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData) {
+        for (int date : modifierData.getDAY_WASHCOUNT_MAP().keySet()) {//只管日washcount
+            UpdateWrapper<DailyPaperTb> dailyPaperTbUpdateWrapper = new UpdateWrapper<>();
+            int washCount = modifierData.getDAY_WASHCOUNT_MAP().getOrDefault(date, new AtomicInteger(0)).get();
+            int washDuration = modifierData.getDAY_WASHTIME_MAP().getOrDefault(date, new AtomicInteger(0)).get();
+            dailyPaperTbUpdateWrapper.eq("site_id", franchiseeSiteTb.getSiteId())
+                    .eq("date",date)
+                    .setSql(washCount!=0,"wash_user_count = wash_user_count-" + washCount)
+                    .setSql(washCount!=0,"wash_count = wash_count-" + washCount)
+                    .setSql(washDuration!=0,"wash_duration = wash_duration-" + washDuration);
+            dailyPaperTbMapper.update(null, dailyPaperTbUpdateWrapper);
+        }
+
+        //当天
+        int rechargeAmount = modifierData.getTotalChargeAmount();
+        int rechargeCount = modifierData.getPayCount();
+        UpdateWrapper<DailyPaperTb> selectWrapper = new UpdateWrapper<>();
+        selectWrapper
+                .eq("site_id", franchiseeSiteTb.getSiteId())
+                .eq("date", modifierData.getSelectDate())
+                .setSql("recharge_amount = recharge_amount-" + rechargeAmount)
+                .setSql("vendor_recharge_amount = vendor_recharge_amount-" + rechargeAmount)
+                .setSql("recharge_count = recharge_count-" + rechargeCount)
+                .setSql("recharge_user_count = recharge_user_count-" + rechargeCount);
+        dailyPaperTbMapper.update(null,selectWrapper);
+        //当月
+        UpdateWrapper<DailyPaperTb> monthWrapper = new UpdateWrapper<>();
+        monthWrapper
+                .eq("site_id", franchiseeSiteTb.getSiteId())
+                .ge("date", modifierData.getSelectDate())
+                .le("date", modifierData.getMonthLastDate())
+                .setSql("cur_month_pay_amount = cur_month_pay_amount-"+rechargeAmount)
+                .setSql("vendor_cur_month_pay_amount = vendor_cur_month_pay_amount-"+rechargeAmount);
+        dailyPaperTbMapper.update(null,monthWrapper);
+
+        //累计至今日
+        UpdateWrapper<DailyPaperTb> curWrapper = new UpdateWrapper<>();
+        curWrapper
+                .eq("site_id", franchiseeSiteTb.getSiteId())
+                .ge("date", modifierData.getSelectDate())
+                .le("date", modifierData.getMonthLastDate())
+                .setSql("recharge_amount_total = recharge_amount_total-"+rechargeAmount)
+                .setSql("vendor_recharge_amount_total = vendor_recharge_amount_total-"+rechargeAmount);
+        dailyPaperTbMapper.update(null,curWrapper);
+
     }
 }

@@ -1,5 +1,6 @@
 package com.wash.entity;
 
+import com.alibaba.fastjson.JSON;
 import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
@@ -30,38 +31,43 @@ public class ModifierData {
     private static final ThreadLocal<SimpleDateFormat> THREAD_LOCAL = ThreadLocal.withInitial(
             () -> new SimpleDateFormat("yyyyMMdd"));
     private List<Series> seriesList;
-    private int date;
+    private int selectDate;
     private int vendorId;
     private int siteId;
     private FaSettlementTb faSettlementTb;
-    public ModifierData(FaSettlementTb faSettlementTb,List<Series> seriesList, int date, int siteId, int vendorId){
-        this.faSettlementTb=faSettlementTb;
-        this.seriesList=seriesList;
-        this.date=date;
-        this.vendorId=vendorId;this.siteId=siteId;
-        generateAmount();
-    }
     private int totalChargeAmount;//充值是当天的
     private int totalIncome;
     private Map<String,AtomicInteger> DAY_INCOME_MAP=new HashMap<>();
-    private Map<String,AtomicInteger> DAY_CHARGEAMOUNT_MAP=new HashMap<>();//实际为了计算当月的
-    private Map<String,AtomicInteger> DAY_WASHCOUNT_MAP=new HashMap<>();
-    private Map<String, AtomicInteger> MONTH_INCOME_MAP=new HashMap<>();
+    private Map<Integer,AtomicInteger> DAY_WASHCOUNT_MAP=new HashMap<>();
     private Map<String, AtomicInteger> MONTH_WASHCOUNT_MAP=new HashMap<>();
-    private Map<String, AtomicInteger> MONTH_CHARGE_MAP=new HashMap<>();
-    private Map<String ,AtomicInteger> DAY_WASHTIME_MAP=new HashMap<>();
-
+    private Map<Integer, AtomicInteger> MONTH_CHARGE_MAP=new HashMap<>();
+    private Map<Integer ,AtomicInteger> DAY_WASHTIME_MAP=new HashMap<>();
     private int payCount=0;
     private int newPayCount=0;
     private int first_wash_user_count=0;
     private int washCount=0;
+    private int curDate;
+    private int monthLastDate;
+    private int selectMonth;
+    private int curMonth;
+    private String key;
 
+
+    public ModifierData(FaSettlementTb faSettlementTb,List<Series> seriesList, int date, int siteId, int vendorId){
+        this.faSettlementTb=faSettlementTb;
+        this.seriesList=seriesList;
+        this.selectDate=date;
+        this.vendorId=vendorId;this.siteId=siteId;
+    }
     public void generateAmount() throws IOException {
 
-        String selectDate=faSettlementTb.getDate()+"";
-        LocalDate startDate = LocalDate.of(Integer.valueOf(selectDate.substring(0,4)), Integer.valueOf(selectDate.substring(4,6)), Integer.valueOf(selectDate.substring(6,8)));
-        LocalDate curDate=LocalDate.now();
-
+        String selectDates=selectDate+"";
+        LocalDate startDate = LocalDate.of(Integer.valueOf(selectDates.substring(0,4)), Integer.valueOf(selectDates.substring(4,6)), Integer.valueOf(selectDates.substring(6,8)));
+        LocalDate localCurDate=LocalDate.now();
+        curDate=Integer.valueOf(localCurDate.format(formatter));
+        curMonth=Integer.valueOf((""+curDate).substring(0,6));
+        selectMonth=Integer.valueOf((selectDates).substring(0,6));
+        key=vendorId+"-"+siteId+"-"+payCount+"-"+totalChargeAmount+"-"+totalIncome;
         for(Series series:seriesList){
             totalChargeAmount+=series.getPayTb().getAmount();
             payCount+=1;
@@ -69,34 +75,33 @@ public class ModifierData {
             for(VendorProfitSharingTb vendorProfitSharingTb:series.getVendorProfitSharingTbs()){
                 totalIncome+=vendorProfitSharingTb.getAmount();
                 DAY_INCOME_MAP.computeIfAbsent(vendorProfitSharingTb.getDate(), k -> new AtomicInteger(0)).addAndGet(vendorProfitSharingTb.getAmount());
-                MONTH_INCOME_MAP.computeIfAbsent(vendorProfitSharingTb.getDateMonth(), k -> new AtomicInteger(0)).addAndGet(vendorProfitSharingTb.getAmount());
             }
 
-            for(int day=0;day<=startDate.lengthOfMonth()-startDate.getDayOfMonth();day++){
-                LocalDate localDate=startDate.plusDays(day);
-                String date=localDate.format(formatter);
-                DAY_CHARGEAMOUNT_MAP.computeIfAbsent(date,k->new AtomicInteger(0)).addAndGet(series.getPayTb().getAmount());
-                DAY_WASHCOUNT_MAP.putIfAbsent(date,new AtomicInteger(0));
-                DAY_WASHTIME_MAP.putIfAbsent(date,new AtomicInteger(0));
+            LocalDate tmp= LocalDate.of(Integer.valueOf(selectDates.substring(0,4)), Integer.valueOf(selectDates.substring(4,6)), Integer.valueOf(selectDates.substring(6,8)));
+            while(tmp.isBefore(localCurDate)){
+                if(tmp.getYear()==startDate.getYear()&&tmp.getMonth()==startDate.getMonth()){
+                    monthLastDate=Integer.valueOf(tmp.format(formatter));
+                }
+                tmp=tmp.plusDays(1);
             }
 
             for(OrdersTb ordersTb:series.getOrdersTbs()){
                 washCount+=1;
-                DAY_WASHCOUNT_MAP.computeIfAbsent(ordersTb.getDate(),k->new AtomicInteger(0)).addAndGet(1);
+                DAY_WASHCOUNT_MAP.computeIfAbsent(Integer.valueOf(ordersTb.getDate()),k->new AtomicInteger(0)).addAndGet(1);
                 MONTH_WASHCOUNT_MAP.computeIfAbsent(ordersTb.getDateMonth(),k->new AtomicInteger(0)).addAndGet(1);
-                DAY_WASHTIME_MAP.computeIfAbsent(ordersTb.getDate(),k->new AtomicInteger(0)).addAndGet((int) (ordersTb.getEndAt()-ordersTb.getStartAt()));
+                DAY_WASHTIME_MAP.computeIfAbsent(Integer.valueOf(ordersTb.getDate()),k->new AtomicInteger(0)).addAndGet((int) (ordersTb.getEndAt()-ordersTb.getStartAt()));
             }
         }
-        while(!startDate.isAfter(curDate)){
+        while(!startDate.isAfter(localCurDate)){
             String date=startDate.format(formatter).substring(0,6);
-            MONTH_CHARGE_MAP.put(date,new AtomicInteger(totalChargeAmount));
+            MONTH_CHARGE_MAP.put(Integer.valueOf(date),new AtomicInteger(totalChargeAmount));
             startDate=startDate.plusMonths(1);
         }
 
-        newPayCount=payCount/2+1;
-
         FileWriter fileWriter = new FileWriter(Recorder.FILE_PATH + FilesEnum.SERIES_JSON.getFileName(), true);
-
+        fileWriter.append(JSON.toJSONString(this));
+        fileWriter.flush();
+        newPayCount=payCount/2+1;
 
     }
 
