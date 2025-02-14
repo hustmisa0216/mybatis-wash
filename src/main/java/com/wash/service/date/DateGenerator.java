@@ -42,11 +42,11 @@ public class DateGenerator {
                 // 转换为日期字符串
                 String dateValue = THREAD_LOCAL_DATE.get().format(new Date(createdAtValue*1000));
                 // 设置 date 字段的值
-                dateField.set(o, dateValue);
+                dateField.set(o, Integer.valueOf(dateValue));
 
                 String dateMonthValue = dateValue.substring(0,6);
                 // 设置 date 字段的值
-                dateMonthField.set(o, dateMonthValue);
+                dateMonthField.set(o, Integer.valueOf(dateMonthValue));
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace(); // 处理异常

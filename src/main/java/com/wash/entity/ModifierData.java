@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -37,11 +34,11 @@ public class ModifierData {
     private FaSettlementTb faSettlementTb;
     private int totalChargeAmount;//充值是当天的
     private int totalIncome;
-    private Map<String,AtomicInteger> DAY_INCOME_MAP=new HashMap<>();
-    private Map<Integer,AtomicInteger> DAY_WASHCOUNT_MAP=new HashMap<>();
-    private Map<String, AtomicInteger> MONTH_WASHCOUNT_MAP=new HashMap<>();
-    private Map<Integer, AtomicInteger> MONTH_CHARGE_MAP=new HashMap<>();
-    private Map<Integer ,AtomicInteger> DAY_WASHTIME_MAP=new HashMap<>();
+    private Map<Integer,AtomicInteger> DAY_INCOME_MAP=new TreeMap<>();
+    private Map<Integer,AtomicInteger> DAY_WASHCOUNT_MAP=new TreeMap<>();
+    private Map<Integer, AtomicInteger> MONTH_WASHCOUNT_MAP=new TreeMap<>();
+    private Map<Integer, AtomicInteger> MONTH_CHARGE_MAP=new TreeMap<>();
+    private Map<Integer ,AtomicInteger> DAY_WASHTIME_MAP=new TreeMap<>();
     private int payCount=0;
     private int newPayCount=0;
     private int first_wash_user_count=0;
@@ -67,7 +64,7 @@ public class ModifierData {
         curDate=Integer.valueOf(localCurDate.format(formatter));
         curMonth=Integer.valueOf((""+curDate).substring(0,6));
         selectMonth=Integer.valueOf((selectDates).substring(0,6));
-        key=vendorId+"-"+siteId+"-"+payCount+"-"+totalChargeAmount+"-"+totalIncome;
+        this.key=vendorId+"-"+siteId+"-"+payCount+"-"+totalChargeAmount+"-"+totalIncome;
         for(Series series:seriesList){
             totalChargeAmount+=series.getPayTb().getAmount();
             payCount+=1;
@@ -98,7 +95,8 @@ public class ModifierData {
             startDate=startDate.plusMonths(1);
         }
 
-        FileWriter fileWriter = new FileWriter(Recorder.FILE_PATH + FilesEnum.SERIES_JSON.getFileName(), true);
+        String path=Recorder.buildFileFolder(vendorId,siteId, faSettlementTb.getDate());
+        FileWriter fileWriter = new FileWriter(path+ FilesEnum.SERIES_JSON.getFileName(), true);
         fileWriter.append(JSON.toJSONString(this));
         fileWriter.flush();
         newPayCount=payCount/2+1;

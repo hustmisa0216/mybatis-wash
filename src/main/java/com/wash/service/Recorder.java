@@ -99,7 +99,7 @@ public class Recorder {
         }
     }
 
-    static String buildFileFolder(int vendorId, int siteId, Integer date) {
+    public static String buildFileFolder(int vendorId, int siteId, Integer date) {
         return FILE_PATH + vendorId + "/" + siteId + "/" + date+"/"; // 替换为实际路径
     }
 }

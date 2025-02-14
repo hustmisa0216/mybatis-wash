@@ -115,6 +115,7 @@ public class Selecter {
                 FileWriter dateWriter = new FileWriter(path + FilesEnum.DATE.getFileName(), true);
                 dateWriter.write(key);
                 dateWriter.flush();
+                return key;
             } catch (Throwable e) {
                 return ExceptionUtils.getStackTrace(e);
             }
@@ -342,10 +343,22 @@ public class Selecter {
                     QueryWrapper<OrdersTb> ordersTbQueryWrapper = new QueryWrapper<>();
                     ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
                             .ge("created_at", commodityOrderTb.getCreatedAt())
-                            .le("created_at", expireTime)
                             .eq("site_id", payTb.getSiteId())
                             .eq(StringUtils.isNotEmpty(commodityOrderId), "commodity_order_id", commodityOrderId);
                     List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
+
+                    final long exp=expireTime;
+                    List<OrdersTb> lastOrders=new ArrayList<>();
+                    if(CollectionUtils.isNotEmpty(ordersTbs)){
+                        lastOrders=ordersTbs.stream().filter(i->i.getCreatedAt()>exp).collect(Collectors.toList());
+                    }
+                    if(CollectionUtils.isNotEmpty(lastOrders)) {
+                        long lastMonthTime = System.currentTimeMillis() / 1000 - 30 * 24 * 60 * 60;
+                        boolean exists = lastOrders.stream().anyMatch(i -> i.getCreatedAt() > lastMonthTime);
+                        if(exists){
+                            continue;//用户最近使用
+                        }
+                    }
 
                     List<OrdersTb> resOrdersTbs = new ArrayList<>();
                     //次卡是否都是一次？
@@ -359,11 +372,12 @@ public class Selecter {
                                 resOrdersTbs.addAll(ordersTbs);
                             }
                         } else if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
-                            resOrdersTbs.addAll(ordersTbs);
+                            List<OrdersTb> vipOrders=ordersTbs.stream().filter(i->i.getCreatedAt()<=exp).collect(Collectors.toList());
+                            resOrdersTbs.addAll(vipOrders);
                         }
                     }
                     ordersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
-                    series.setOrdersTbs(ordersTbs);
+                    series.setOrdersTbs(resOrdersTbs);
                     seriesList.add(series);
                 }
             } catch (Exception e) {

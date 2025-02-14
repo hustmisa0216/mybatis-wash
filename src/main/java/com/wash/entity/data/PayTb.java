@@ -31,9 +31,9 @@ public class PayTb {
     private Integer flag; // 标示
 
     @TableField(exist = false) // 标记此字段不参与数据库操作
-    private String date;
+    private int date;
     @TableField(exist = false) // 标记此字段不参与数据库操作
-    private String dateMonth;
+    private int dateMonth;
 
 
     public String toString(){

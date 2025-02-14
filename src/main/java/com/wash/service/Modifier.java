@@ -79,7 +79,8 @@ public class Modifier {
             monthPaperTbUpdateWrapper
                     .eq("date",date)
                     .eq("site_id",faSettlementTbRes.getSiteId())
-                    .setSql("vendor_recharge_amount = vendor_recharge_amount-"+chargeAmount)
+                    .setSql(chargeAmount!=0,"recharge_amount = recharge_amount-"+chargeAmount)
+                    .setSql(chargeAmount!=0,"vendor_recharge_amount = vendor_recharge_amount-"+chargeAmount)
                     .setSql(totalChargeAmount!=0,"vendor_total_recharge_amount= vendor_total_recharge_amount-"+totalChargeAmount)
                     .setSql(chargeCount!=0,"recharge_count = recharge_count-"+chargeCount)
                     .setSql(totalChargeCount!=0,"all_third_pay_usr_count = all_third_pay_usr_count-"+totalChargeCount)
@@ -87,7 +88,9 @@ public class Modifier {
                     .setSql(totalWashCount!=0,"total_wash_count = total_wash_count-"+totalWashCount)
                     .setSql(chargeCount!=0,"wash_user_count = wash_user_count-"+chargeCount)
                     .setSql(washCount!=0,"wash_count = wash_count-"+washCount);
-            monthPaperTbMapper.update(null,monthPaperTbUpdateWrapper);
+            if((chargeAmount+totalChargeAmount+chargeCount+totalChargeCount+totalWashCount+washCount)!=0) {
+                monthPaperTbMapper.update(null, monthPaperTbUpdateWrapper);
+            }
         }
 
         UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapper=new UpdateWrapper<>();
@@ -102,7 +105,7 @@ public class Modifier {
     }
 
     private void modifierFaSettlement(int vendorId, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
-        for(String date: modifierData.getDAY_INCOME_MAP().keySet()){
+        for(int date: modifierData.getDAY_INCOME_MAP().keySet()){
         UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper=new UpdateWrapper<>();
             int income= modifierData.getDAY_INCOME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
             faSettlementTbUpdateWrapper
