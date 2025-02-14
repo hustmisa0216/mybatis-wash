@@ -1,14 +1,10 @@
 package com.wash.entity;
 
-import com.alibaba.fastjson.JSON;
-import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
 import com.wash.entity.statistics.FaSettlementTb;
-import com.wash.service.Recorder;
 import lombok.Data;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -31,7 +27,7 @@ public class ModifierData {
     private int selectDate;
     private int vendorId;
     private int siteId;
-    private FaSettlementTb faSettlementTb;
+    private DailyData dailyData;
     private int totalChargeAmount;//充值是当天的
     private int totalIncome;
     private Map<Integer,AtomicInteger> DAY_INCOME_MAP=new TreeMap<>();
@@ -50,8 +46,10 @@ public class ModifierData {
     private String key;
 
 
-    public ModifierData(FaSettlementTb faSettlementTb,List<Series> seriesList, int date, int siteId, int vendorId){
-        this.faSettlementTb=faSettlementTb;
+
+
+    public ModifierData(DailyData dailyData, List<Series> seriesList, int date, int siteId, int vendorId){
+        this.dailyData=dailyData;
         this.seriesList=seriesList;
         this.selectDate=date;
         this.vendorId=vendorId;this.siteId=siteId;
@@ -64,7 +62,6 @@ public class ModifierData {
         curDate=Integer.valueOf(localCurDate.format(formatter));
         curMonth=Integer.valueOf((""+curDate).substring(0,6));
         selectMonth=Integer.valueOf((selectDates).substring(0,6));
-        this.key=vendorId+"-"+siteId+"-"+payCount+"-"+totalChargeAmount+"-"+totalIncome;
         for(Series series:seriesList){
             totalChargeAmount+=series.getPayTb().getAmount();
             payCount+=1;
@@ -86,7 +83,7 @@ public class ModifierData {
                 washCount+=1;
                 DAY_WASHCOUNT_MAP.computeIfAbsent(Integer.valueOf(ordersTb.getDate()),k->new AtomicInteger(0)).addAndGet(1);
                 MONTH_WASHCOUNT_MAP.computeIfAbsent(ordersTb.getDateMonth(),k->new AtomicInteger(0)).addAndGet(1);
-                DAY_WASHTIME_MAP.computeIfAbsent(Integer.valueOf(ordersTb.getDate()),k->new AtomicInteger(0)).addAndGet((int) (ordersTb.getEndAt()-ordersTb.getStartAt()));
+                DAY_WASHTIME_MAP.computeIfAbsent(Integer.valueOf(ordersTb.getDate()),k->new AtomicInteger(0)).addAndGet(ordersTb.getComboTime());
             }
         }
         while(!startDate.isAfter(localCurDate)){
@@ -95,10 +92,11 @@ public class ModifierData {
             startDate=startDate.plusMonths(1);
         }
 
-        String path=Recorder.buildFileFolder(vendorId,siteId, faSettlementTb.getDate());
-        FileWriter fileWriter = new FileWriter(path+ FilesEnum.SERIES_JSON.getFileName(), true);
-        fileWriter.append(JSON.toJSONString(this));
-        fileWriter.flush();
+
+        int allPayCount=dailyData.getDailyPaperTb().getRechargeCount();
+        int dayRechargeAmount=dailyData.getDailyPaperTb().getRechargeAmount();
+        int allIn=dailyData.getFaSettlementTb().getEarnings();
+        this.key=vendorId+"-"+siteId+"-"+allPayCount+"-"+dayRechargeAmount+"-"+allIn+"-"+payCount+"-"+totalChargeAmount+"-"+totalIncome;
         newPayCount=payCount/2+1;
 
     }

@@ -21,9 +21,9 @@ public class VendorController {
             @RequestParam(value = "inputDate", required = false) Integer inputDate) {
 
         // 这里可以添加你的业务逻辑，例如：
-        // 1. 验证输入参数
-        // 2. 调用服务层方法进行处理
-        // 3. 返回处理结果
+        // 1. vendor必选 site不选就是全部
+        // 2. date未输入->给dec就按dec*9找一天,不给就按今天收入选一天
+        // 3. date输入->给dec就按dec筛选,不给dec就按给定日期的1/9
 
         // 示例：打印接收到的参数
         String result = String.format("Vendor ID: %d, Dec Amount: %d, Site ID: %d, Date: %d",

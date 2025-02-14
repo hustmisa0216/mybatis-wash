@@ -1,5 +1,7 @@
 package com.wash.service;
 
+import com.alibaba.fastjson.JSON;
+import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
 import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.OrdersTb;
@@ -10,29 +12,39 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 
 @Service
 public class Recorder {
     public  static final String FILE_PATH = "D:\\mogo\\wash\\";
 
-    public void record(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList)
+    public void record(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData)
             throws Exception {
 
         int siteId = franchiseeSiteTb.getSiteId();
         createFilesForVendor(vendorId, siteId, faSettlementTbRes.getDate());
 
         String path = buildFileFolder(vendorId, siteId, faSettlementTbRes.getDate());
-
         FileWriter payWriter = new FileWriter(path + FilesEnum.PAYTB_DATA.getFileName(), true);
         FileWriter commodityOrderWriter = new FileWriter(path + FilesEnum.COMMODITY_ORDER_DATA.getFileName(), true);
         FileWriter orderWriter = new FileWriter(path + FilesEnum.ORDERSTB_DATA.getFileName(), true);
         FileWriter vendorProfitWriter = new FileWriter(path + FilesEnum.VENDOR_PROFIT_DATA.getFileName(), true);
+        FileWriter modifierWriter = new FileWriter(path+ FilesEnum.SERIES_JSON.getFileName(), true);
+        payWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        payWriter.flush();
+        commodityOrderWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        commodityOrderWriter.flush();
+        orderWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        orderWriter.flush();
+        vendorProfitWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        vendorProfitWriter.flush();
+        modifierWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        modifierWriter.flush();
 
-        for(Series series:seriesList){
+        modifierWriter.append(JSON.toJSONString(modifierData));
+        modifierWriter.flush();
+        for(Series series:modifierData.getSeriesList()){
             payWriter.append(series.getPayTb().toString()+"\n");
             payWriter.flush();
 
@@ -47,14 +59,6 @@ public class Recorder {
                 vendorProfitWriter.flush();
             }
         }
-        payWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
-        payWriter.flush();
-        commodityOrderWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
-        commodityOrderWriter.flush();
-        orderWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
-        orderWriter.flush();
-        vendorProfitWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
-        vendorProfitWriter.flush();
 
     }
 

@@ -1,21 +1,15 @@
 package com.wash.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
+import com.wash.entity.DailyData;
 import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
-import com.wash.entity.data.CommodityOrdersTb;
-import com.wash.entity.data.OrdersTb;
-import com.wash.entity.data.PayTb;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.franchisee.FranchiseeTb;
 import com.wash.entity.statistics.DailyPaperTb;
-import com.wash.entity.statistics.EnsureIncomeTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.entity.statistics.MonthPaperTb;
 import com.wash.mapper.*;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,9 +50,10 @@ public class Modifier {
         }
 
     }
-    public String update(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
+    public ModifierData update(int vendorId, DailyData dailyData, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
 
-        ModifierData modifierData=new ModifierData(faSettlementTbRes,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId);
+        FaSettlementTb faSettlementTbRes=dailyData.getFaSettlementTb();
+        ModifierData modifierData=new ModifierData(dailyData,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId);
         modifierData.generateAmount();
 
         modifierDailyPaper(franchiseeSiteTb, modifierData);
@@ -101,7 +96,7 @@ public class Modifier {
                 .setSql("stmt_profit_amount = stmt_profit_amount-"+modifierData.getTotalChargeAmount());
        franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
 
-       return modifierData.getKey();
+       return modifierData;
     }
 
     private void modifierFaSettlement(int vendorId, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {

@@ -15,6 +15,7 @@ public class DecData {
 
     private double sum;
     private int decAmount;
+    private boolean inputDec;
 
 
 }
