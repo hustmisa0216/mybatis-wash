@@ -2,7 +2,7 @@ package com.wash.entity.constants;
 
 public enum DeliveryMethodType {
     VIP_TIME(4, "VIP时间"),
-    PER_USE_CARD(6, "次卡"),
+    COUPON_WASHING(12, "洗车券"),
     PREPAID(10, "充值"),
 
     NULL(0, "无需发，比如谢谢"),
@@ -14,7 +14,7 @@ public enum DeliveryMethodType {
     WASHER_FLUID(8, "玻璃水"),
     TIMING(9, "计时会员"),
     PREPAID_SUIT(11, "洗车卡包月套装"),
-    COUPON_WASHING(12, "洗车券");
+    PER_USE_CARD(6, "次卡");
 
     private final int type;
     private final String description;

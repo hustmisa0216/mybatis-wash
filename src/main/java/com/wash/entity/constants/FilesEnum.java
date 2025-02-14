@@ -11,7 +11,7 @@ public enum FilesEnum {
     VENDOR_PROFIT_DATA("VPD","vendorProfit.csv"),
     COMMODITY_ORDER_DATA("cod文件","commodityOrder.csv"),
     SERIES_JSON("Series","series.csv"),
-    SQLS("语句","update.csv"),
+    //SQLS("语句","update.csv"), 未实现
     DATE("成功后日期","date.csv");
 
     private String msg;

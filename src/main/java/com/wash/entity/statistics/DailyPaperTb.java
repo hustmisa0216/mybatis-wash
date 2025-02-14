@@ -20,13 +20,13 @@ public class DailyPaperTb implements Serializable {
     private Integer washCostAmount;
     private Integer rechargeUserCount;//对应付费人数  当天的
     private Integer rechargeCount;
-    private Integer rechargeAmount;
-    private Integer vendorRechargeAmount;
+    private Integer rechargeAmount; //当天充
+    private Integer vendorRechargeAmount; //当天充
     private Integer cashbackAmount;
     private Integer directAmount;
     private Integer cardAmount;
-    private Long rechargeAmountTotal;          //当天充
-    private Long vendorRechargeAmountTotal;    //当天充
+    private Long rechargeAmountTotal;          //累计冲
+    private Long vendorRechargeAmountTotal;    //累计冲
     private Integer remainAmount;
     private Integer remainCallback;
     private Integer remainDirect;
