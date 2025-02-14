@@ -6,44 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ab3ca09d-3915-42e0-8d47-85083aa906b8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spy.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/CrudApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/CrudApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/cache/DateCache.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/cache/DateCache.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/config/MyBatisPlusConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/config/MyBatisPlusConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/ModifierData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/ModifierData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/constants/DeliveryMethodType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/constants/DeliveryMethodType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/constants/FilesEnum.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/constants/FilesEnum.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderConsumeTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderConsumeTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderProfitSharingTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderProfitSharingTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderTransactionTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrderTransactionTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrdersTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/CommodityOrdersTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/OrdersTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/OrdersTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/PayTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/PayTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/VendorProfitSharingTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/data/VendorProfitSharingTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/entity/statistics/DailyPaperTb.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/entity/statistics/DailyPaperTb.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Modifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Modifier.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Recorder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Recorder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/Selecter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/wash/service/date/DateGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/wash/service/date/DateGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/CrudApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/CrudApplication.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/cache/DateCache.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/cache/DateCache.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/config/MybatisPlusConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/config/MybatisPlusConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/ModifierData.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/ModifierData.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/constants/DeliveryMethodType.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/constants/DeliveryMethodType.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/constants/FilesEnum.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/constants/FilesEnum.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderConsumeTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderConsumeTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderProfitSharingTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderProfitSharingTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderTransactionTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrderTransactionTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrdersTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/CommodityOrdersTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/OrdersTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/OrdersTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/entity/data/VendorProfitSharingTb.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/entity/data/VendorProfitSharingTb.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Modifier.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Modifier.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Recorder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Recorder.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/Selecter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/Selecter.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/wash/service/date/DateGenerator.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/wash/service/date/DateGenerator.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wash.log" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,7 +42,7 @@
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "正在合并 master",
+    "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/mybatis-plus-sample-crud",
     "settings.editor.selected.configurable": "configurable.group.language",
