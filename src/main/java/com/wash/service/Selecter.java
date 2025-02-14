@@ -360,6 +360,7 @@ public class Selecter {
                         }
                     }
 
+
                     List<OrdersTb> resOrdersTbs = new ArrayList<>();
                     //次卡是否都是一次？
                     if (ordersTbs != null && ordersTbs.size() > 0) {
