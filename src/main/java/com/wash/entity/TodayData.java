@@ -1,0 +1,16 @@
+package com.wash.entity;
+
+
+import com.wash.entity.statistics.SiteLatestDataTb;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.DoubleSummaryStatistics;
+
+@Data
+@AllArgsConstructor
+public class TodayData {
+    private DoubleSummaryStatistics doubleSummaryStatistics;
+
+    private SiteLatestDataTb siteLatestDataTb;
+}

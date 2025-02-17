@@ -4,11 +4,12 @@ import com.wash.service.Recorder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * @author liukunpeng@zhidaoauto.com
@@ -22,7 +23,7 @@ public class DateCache {
     public Map<Integer, Map<Integer, Set<Integer>>> SITE_DATE_MAP = new HashMap<>();
 
     @PostConstruct
-    public void reload() {
+    public void reload() throws IOException {
         File baseDir = new File(Recorder.FILE_PATH);
 
         //从文件夹层级读取map
@@ -55,12 +56,26 @@ public class DateCache {
                                             int vendorId = Integer.valueOf(pathParts[0]); // 3273
                                             int siteId = Integer.valueOf(pathParts[1]); // 951
                                             int date = Integer.valueOf(pathParts[2]); // 20240509
+                                            List<String> lines = Files.readAllLines(file.toPath());
 
-                                            // 存入 SITE_DATE_MAP
-                                            SITE_DATE_MAP
-                                                    .computeIfAbsent(vendorId, k -> new HashMap<>())
-                                                    .computeIfAbsent(siteId, k -> new HashSet<>())
-                                                    .add(date);
+                                            int totalAmount=0;
+                                            int totalPay=0;
+                                            for(String line:lines){
+                                                if(line.contains("-")) {
+                                                    String v[] = line.split("-");
+                                                    if (v.length > 6) {
+                                                        totalPay += Integer.valueOf(v[6]);
+                                                        totalAmount += Integer.valueOf(v[7]);
+                                                    }
+                                                }
+                                            }
+
+                                            if(totalPay>280||totalAmount>108) {
+                                                SITE_DATE_MAP
+                                                        .computeIfAbsent(vendorId, k -> new HashMap<>())
+                                                        .computeIfAbsent(siteId, k -> new HashSet<>())
+                                                        .add(date);
+                                            }
                                         }
                                     }
                                 }

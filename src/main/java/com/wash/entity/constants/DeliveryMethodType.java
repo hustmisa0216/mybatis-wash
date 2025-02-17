@@ -4,6 +4,7 @@ public enum DeliveryMethodType {
     VIP_TIME(4, "VIP时间"),
     COUPON_WASHING(12, "洗车券"),
     PREPAID(10, "充值"),
+    PREPAID_SUIT(11, "洗车卡包月套装"),
 
     NULL(0, "无需发，比如谢谢"),
     REDPACKET(1, "红包"),
@@ -13,7 +14,6 @@ public enum DeliveryMethodType {
     GROUND_LOCK(7, "地锁押金"),
     WASHER_FLUID(8, "玻璃水"),
     TIMING(9, "计时会员"),
-    PREPAID_SUIT(11, "洗车卡包月套装"),
     PER_USE_CARD(6, "次卡");
 
     private final int type;

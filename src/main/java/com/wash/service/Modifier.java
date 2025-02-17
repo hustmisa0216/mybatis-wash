@@ -1,23 +1,19 @@
 package com.wash.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
+import com.wash.entity.DailyData;
 import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
-import com.wash.entity.data.CommodityOrdersTb;
-import com.wash.entity.data.OrdersTb;
-import com.wash.entity.data.PayTb;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.franchisee.FranchiseeTb;
 import com.wash.entity.statistics.DailyPaperTb;
-import com.wash.entity.statistics.EnsureIncomeTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.entity.statistics.MonthPaperTb;
 import com.wash.mapper.*;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,19 +42,24 @@ public class Modifier {
     @Autowired
     private CommodityOrdersTbMapper commodityOrdersTbMapper;
 
+    @Transactional
     public void delete(int vendorId,FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList) {
 
         for(Series series:seriesList){
+            if(CollectionUtils.isNotEmpty(series.getOrdersTbs())){
+                ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
+            }
             payTbMapper.deleteById(series.getPayTb());
-            ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
             commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
             vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
         }
 
     }
-    public String update(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
+    @Transactional
+    public ModifierData update(FranchiseeTb franchiseeTb, int vendorId, DailyData dailyData, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
 
-        ModifierData modifierData=new ModifierData(faSettlementTbRes,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId);
+        FaSettlementTb faSettlementTbRes=dailyData.getFaSettlementTb();
+        ModifierData modifierData=new ModifierData(dailyData,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId,franchiseeTb.getWaitWithdraw());
         modifierData.generateAmount();
 
         modifierDailyPaper(franchiseeSiteTb, modifierData);
@@ -93,15 +94,7 @@ public class Modifier {
             }
         }
 
-        UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapper=new UpdateWrapper<>();
-        franchiseeTbUpdateWrapper.eq("id",vendorId)
-                .setSql("settled_amount = settled_amount-"+modifierData.getTotalIncome())
-                .setSql("wait_withdraw = wait_withdraw-"+modifierData.getTotalIncome())
-                .setSql("stmt_recharge_amount = stmt_recharge_amount-"+modifierData.getTotalChargeAmount())
-                .setSql("stmt_profit_amount = stmt_profit_amount-"+modifierData.getTotalChargeAmount());
-       franchiseeTbMapper.update(null,franchiseeTbUpdateWrapper);
-
-       return modifierData.getKey();
+       return modifierData;
     }
 
     private void modifierFaSettlement(int vendorId, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
