@@ -4,6 +4,7 @@ import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -30,7 +31,11 @@ public class ModifierData {
     private DailyData dailyData;
     private int totalChargeAmount;//充值是当天的
     private int totalIncome;
+    private int parentTotalIncome;
     private Map<Integer,AtomicInteger> DAY_INCOME_MAP=new TreeMap<>();
+
+    private Map<Integer,AtomicInteger> PARENT_DAY_INCOME_MAP=new TreeMap<>();
+
     private Map<Integer,AtomicInteger> DAY_WASHCOUNT_MAP=new TreeMap<>();
     private Map<Integer, AtomicInteger> MONTH_WASHCOUNT_MAP=new TreeMap<>();
     private Map<Integer, AtomicInteger> MONTH_CHARGE_MAP=new TreeMap<>();
@@ -72,6 +77,13 @@ public class ModifierData {
             for(VendorProfitSharingTb vendorProfitSharingTb:series.getVendorProfitSharingTbs()){
                 totalIncome+=vendorProfitSharingTb.getAmount();
                 DAY_INCOME_MAP.computeIfAbsent(vendorProfitSharingTb.getDate(), k -> new AtomicInteger(0)).addAndGet(vendorProfitSharingTb.getAmount());
+            }
+            if(CollectionUtils.isNotEmpty(series.getParentVendorProfitSharingTbs())) {
+                for (VendorProfitSharingTb parentVendor : series.getParentVendorProfitSharingTbs()) {
+                    parentTotalIncome+=parentVendor.getAmount();
+                    PARENT_DAY_INCOME_MAP.computeIfAbsent(parentVendor.getDate(), k -> new AtomicInteger(0)).addAndGet(parentVendor.getAmount());
+
+                }
             }
 
             LocalDate tmp= LocalDate.of(Integer.valueOf(selectDates.substring(0,4)), Integer.valueOf(selectDates.substring(4,6)), Integer.valueOf(selectDates.substring(6,8)));

@@ -43,15 +43,18 @@ public class Modifier {
     private CommodityOrdersTbMapper commodityOrdersTbMapper;
 
     @Transactional
-    public void delete(int vendorId,FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, List<Series> seriesList) {
+    public void delete(List<Series> seriesList) {
 
-        for(Series series:seriesList){
-            if(CollectionUtils.isNotEmpty(series.getOrdersTbs())){
+        for(Series series:seriesList) {
+            if (CollectionUtils.isNotEmpty(series.getOrdersTbs())) {
                 ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
             }
             payTbMapper.deleteById(series.getPayTb());
             commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
             vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
+            if (CollectionUtils.isNotEmpty(series.getParentVendorProfitSharingTbs())) {
+                vendorProfitSharingTbMapper.deleteBatchIds(series.getParentVendorProfitSharingTbs());
+            }
         }
 
     }
@@ -63,7 +66,7 @@ public class Modifier {
         modifierData.generateAmount();
 
         modifierDailyPaper(franchiseeSiteTb, modifierData);
-        modifierFaSettlement(vendorId, faSettlementTbRes, modifierData);
+        modifierFaSettlement(vendorId,franchiseeSiteTb, faSettlementTbRes, modifierData);
 
         int selectMonth= modifierData.getSelectMonth();
         int totalChargeAmount=0;
@@ -97,7 +100,7 @@ public class Modifier {
        return modifierData;
     }
 
-    private void modifierFaSettlement(int vendorId, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
+    private void modifierFaSettlement(int vendorId, FranchiseeSiteTb franchiseeSiteTb, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
         for(int date: modifierData.getDAY_INCOME_MAP().keySet()){
         UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper=new UpdateWrapper<>();
             int income= modifierData.getDAY_INCOME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
@@ -108,6 +111,20 @@ public class Modifier {
                     .setSql("earnings=earnings-"+income);
             faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
         }
+        if(modifierData.getParentTotalIncome()>0) {
+            for (int date : modifierData.getPARENT_DAY_INCOME_MAP().keySet()) {
+                UpdateWrapper<FaSettlementTb> parentWrapper = new UpdateWrapper<>();
+                int parentIncome = modifierData.getPARENT_DAY_INCOME_MAP().getOrDefault(date, new AtomicInteger(0)).get();
+                parentWrapper
+                        .eq("own_id", franchiseeSiteTb.getParentId())
+                        .eq("date", date)
+                        .eq("site_id", faSettlementTbRes.getSiteId())
+                        .setSql("earnings=earnings-" + parentIncome);
+                faSettlementTbMapper.update(null, parentWrapper);
+            }
+        }
+
+
     }
 
     private void modifierDailyPaper(FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData) {

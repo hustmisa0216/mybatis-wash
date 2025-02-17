@@ -8,6 +8,7 @@ import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.statistics.FaSettlementTb;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -30,6 +31,8 @@ public class Recorder {
         FileWriter commodityOrderWriter = new FileWriter(path + FilesEnum.COMMODITY_ORDER_DATA.getFileName(), true);
         FileWriter orderWriter = new FileWriter(path + FilesEnum.ORDERSTB_DATA.getFileName(), true);
         FileWriter vendorProfitWriter = new FileWriter(path + FilesEnum.VENDOR_PROFIT_DATA.getFileName(), true);
+        FileWriter parentVpd = new FileWriter(path + FilesEnum.VENDOR_PROFIT_DATA_PARENT.getFileName(), true);
+
         FileWriter modifierWriter = new FileWriter(path+ FilesEnum.SERIES_JSON.getFileName(), true);
         payWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
         payWriter.flush();
@@ -39,8 +42,11 @@ public class Recorder {
         orderWriter.flush();
         vendorProfitWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
         vendorProfitWriter.flush();
+        parentVpd.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
+        parentVpd.flush();
         modifierWriter.append("recordDate:"+faSettlementTbRes.getDate()+"\n");
         modifierWriter.flush();
+
 
         modifierWriter.append(JSON.toJSONString(modifierData));
         modifierWriter.flush();
@@ -58,6 +64,15 @@ public class Recorder {
                 vendorProfitWriter.append(vendorProfitSharingTb.toString()+"\n");
                 vendorProfitWriter.flush();
             }
+
+            if(CollectionUtils.isNotEmpty(series.getParentVendorProfitSharingTbs())) {
+                for (VendorProfitSharingTb vendorProfitSharingTb : series.getParentVendorProfitSharingTbs()) {
+                    parentVpd.append(vendorProfitSharingTb.toString() + "\n");
+                    parentVpd.flush();
+                }
+            }
+
+
         }
 
     }

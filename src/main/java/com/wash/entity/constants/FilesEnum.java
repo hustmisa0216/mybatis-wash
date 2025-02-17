@@ -9,6 +9,8 @@ public enum FilesEnum {
     PAYTB_DATA("付款","paytb.csv"),
     ORDERSTB_DATA("xc订单","orderstb.csv"),
     VENDOR_PROFIT_DATA("VPD","vendorProfit.csv"),
+
+    VENDOR_PROFIT_DATA_PARENT("PVPD","parent_vendorProfit.csv"),
     COMMODITY_ORDER_DATA("cod文件","commodityOrder.csv"),
     SERIES_JSON("Series","series.csv"),
     //SQLS("语句","update.csv"), 未实现
