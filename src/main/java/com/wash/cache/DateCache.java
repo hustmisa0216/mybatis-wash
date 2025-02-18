@@ -61,16 +61,27 @@ public class DateCache {
                                             int totalAmount=0;
                                             int totalPay=0;
                                             for(String line:lines){
-                                                if(line.contains("-")) {
-                                                    String v[] = line.split("-");
-                                                    if (v.length > 6) {
-                                                        totalPay += Integer.valueOf(v[6]);
-                                                        totalAmount += Integer.valueOf(v[7]);
+//vendorId+"-"+siteId+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
+
+                                                if(line.contains("||")){
+                                                  String v=line.split("\\|\\|")[2];
+                                                    String vs[] = v.replace("(","").replace(")","").split("-");
+                                                    if (vs.length > 2) {
+                                                        totalPay += Integer.valueOf(vs[1]);
+                                                        totalAmount += Integer.valueOf(vs[2]);
+                                                    }
+                                                }else {//旧版本;
+                                                    if (line.contains("-")) {
+                                                        String v[] = line.split("-");
+                                                        if (v.length > 6) {
+                                                            totalPay += Integer.valueOf(v[6]);
+                                                            totalAmount += Integer.valueOf(v[7]);
+                                                        }
                                                     }
                                                 }
                                             }
 
-                                            if(totalPay>280||totalAmount>108) {
+                                            if(totalPay>28000||totalAmount>10800) {
                                                 SITE_DATE_MAP
                                                         .computeIfAbsent(vendorId, k -> new HashMap<>())
                                                         .computeIfAbsent(siteId, k -> new HashSet<>())
@@ -87,4 +98,6 @@ public class DateCache {
             }
         System.out.println(SITE_DATE_MAP);
         }
+
+
 }

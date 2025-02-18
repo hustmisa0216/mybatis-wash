@@ -1,11 +1,13 @@
 package com.wash.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.beans.Transient;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -21,9 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Data
 public class ModifierData {
-   private static  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    @JSONField(serialize = false)
+    private static  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+    @JSONField(serialize = false)
     private static final ThreadLocal<SimpleDateFormat> THREAD_LOCAL = ThreadLocal.withInitial(
             () -> new SimpleDateFormat("yyyyMMdd"));
+    @JSONField(serialize = false)
     private List<Series> seriesList;
     private int selectDate;
     private int vendorId;
@@ -51,9 +57,6 @@ public class ModifierData {
     private String key;
     private int waitWithDraw;
     private int afterWaitDraw;
-
-
-
 
     public ModifierData(DailyData dailyData, List<Series> seriesList, int date, int siteId, int vendorId,int waitWithDraw){
         this.dailyData=dailyData;
@@ -109,7 +112,7 @@ public class ModifierData {
         int allPayCount=dailyData.getDailyPaperTb().getRechargeCount();
         int dayRechargeAmount=dailyData.getDailyPaperTb().getRechargeAmount();
         int allIn=dailyData.getFaSettlementTb().getEarnings();
-        this.key=vendorId+"-"+siteId+"-"+allPayCount+"-"+dayRechargeAmount+"-"+allIn+"-"+payCount+"-"+totalChargeAmount+"-"+totalIncome;
+        this.key=vendorId+"-"+siteId+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
         newPayCount=payCount/2+1;
     }
 

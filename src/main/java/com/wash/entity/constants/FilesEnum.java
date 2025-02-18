@@ -24,5 +24,15 @@ public enum FilesEnum {
         this.fileName=fileName;
     }
 
+    public static void main(String[] args) {
+        String line="3066-864||(2-8800-9169)||(1-3800-2726)";
+        String v=line.split("\\|\\|")[2];
+        String vs[] = v.replace("(","").replace(")","").split("-");
+        if (vs.length > 2) {
+
+
+        }
+    }
+
 
 }

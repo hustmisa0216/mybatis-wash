@@ -10,7 +10,8 @@ import java.util.DoubleSummaryStatistics;
 @Data
 @AllArgsConstructor
 public class TodayData {
-    private DoubleSummaryStatistics doubleSummaryStatistics;
+    //private DoubleSummaryStatistics doubleSummaryStatistics;
 
+    private int lastDayEar;
     private SiteLatestDataTb siteLatestDataTb;
 }
