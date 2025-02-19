@@ -67,22 +67,27 @@ public class Modifier {
 
         modifierDailyPaper(franchiseeSiteTb, modifierData);
         modifierFaSettlement(vendorId,franchiseeSiteTb, faSettlementTbRes, modifierData);
+        modifierMonth(faSettlementTbRes, modifierData);
 
+        return modifierData;
+    }
+
+    private void modifierMonth(FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
         int selectMonth= modifierData.getSelectMonth();
         int totalChargeAmount=0;
         int totalChargeCount=0;
         int totalWashCount=0;
-        for(int date:modifierData.getMONTH_CHARGE_MAP().keySet()){
+        for(int date: modifierData.getMONTH_CHARGE_MAP().keySet()){
             UpdateWrapper<MonthPaperTb> monthPaperTbUpdateWrapper=new UpdateWrapper<>();
-            int chargeAmount=date==selectMonth?modifierData.getTotalChargeAmount():0;
+            int chargeAmount=date==selectMonth? modifierData.getTotalChargeAmount():0;
             totalChargeAmount+=chargeAmount;
-            int chargeCount=date==selectMonth?modifierData.getPayCount():0;
+            int chargeCount=date==selectMonth? modifierData.getPayCount():0;
             totalChargeCount+=chargeCount;
-            int washCount=modifierData.getMONTH_WASHCOUNT_MAP().getOrDefault(date,new AtomicInteger(0)).get();
+            int washCount= modifierData.getMONTH_WASHCOUNT_MAP().getOrDefault(date,new AtomicInteger(0)).get();
             totalWashCount+=washCount;
             monthPaperTbUpdateWrapper
                     .eq("date",date)
-                    .eq("site_id",faSettlementTbRes.getSiteId())
+                    .eq("site_id", faSettlementTbRes.getSiteId())
                     .setSql(chargeAmount!=0,"recharge_amount = recharge_amount-"+chargeAmount)
                     .setSql(chargeAmount!=0,"vendor_recharge_amount = vendor_recharge_amount-"+chargeAmount)
                     .setSql(totalChargeAmount!=0,"vendor_total_recharge_amount= vendor_total_recharge_amount-"+totalChargeAmount)
@@ -96,8 +101,6 @@ public class Modifier {
                 monthPaperTbMapper.update(null, monthPaperTbUpdateWrapper);
             }
         }
-
-       return modifierData;
     }
 
     private void modifierFaSettlement(int vendorId, FranchiseeSiteTb franchiseeSiteTb, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {

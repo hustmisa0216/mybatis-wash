@@ -18,12 +18,9 @@ public class Series {
     private CommodityOrdersTb commodityOrderTb;
     private List<OrdersTb> ordersTbs;
     private List<VendorProfitSharingTb> vendorProfitSharingTbs;
-
     private List<VendorProfitSharingTb> parentVendorProfitSharingTbs;
-
     private FranchiseeSiteTb franchiseeSiteTb;
     private List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs;
-
     public Series(PayTb payTb,FranchiseeSiteTb franchiseeSiteTb) {
         this.payTb = payTb;
         this.franchiseeSiteTb=franchiseeSiteTb;
