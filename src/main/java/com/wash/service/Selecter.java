@@ -28,9 +28,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.wash.service.Recorder.buildFileFolder;
@@ -81,27 +81,39 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor= Executors.newCachedThreadPool();
 
 
-    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Throwable {
+    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws InterruptedException {
 
         //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
         if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
         StringBuffer res=new StringBuffer();
-        FranchiseeTb franchiseeTb=franchiseeTbMapper.selectById(inputVendorId);
+        FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
         //每个场地单独处理
-        for (FranchiseeSiteTb franchiseeSiteTb : franchiseeSiteTbs){
-            handleByFsite(franchiseeSiteTbs.size(),inputVendorId, inputSiteId, inputDate, inputDecAmount, res, franchiseeTb, franchiseeSiteTb);
+        CountDownLatch countDownLatch=new CountDownLatch(franchiseeSiteTbs.size());
+        for (FranchiseeSiteTb franchiseeSiteTb : franchiseeSiteTbs) {
+            threadPoolExecutor.execute(() -> {
+                try {
+                    handleByFsite(franchiseeSiteTbs.size(), inputVendorId, inputSiteId, inputDate, inputDecAmount,
+                            res, franchiseeTb, franchiseeSiteTb,countDownLatch);
+                } catch (Throwable e) {
+                    LOGGER.error(ExceptionUtils.getStackTrace(e));
+                    countDownLatch.countDown();
+                }
+            });
         }
+        countDownLatch.await();
         return res.toString();
     }
 
-    private void handleByFsite(int size,Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb) throws Throwable {
+    private void handleByFsite(int size, Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb, CountDownLatch countDownLatch) throws Throwable {
         if (franchiseeSiteTb.getDeletedAt() != null) {
+            countDownLatch.countDown();
             return ;
         }
 
         if (inputSiteId != null) {
             if (franchiseeSiteTb.getSiteId().intValue() != inputSiteId.intValue())
+                countDownLatch.countDown();
                 return ;
         }
         DailyData dailyData = null;
@@ -109,6 +121,7 @@ public class Selecter {
         if (inputDate == null) {
              todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
              if(todayData==null){
+                 countDownLatch.countDown();
                  return ;
              }
             double lastDayEar = todayData.getLastDayEar();
@@ -126,7 +139,8 @@ public class Selecter {
         } else {
             if (judgeExists(inputVendorId, inputSiteId, inputDate)) {
               res.append(franchiseeSiteTb.getSiteId()+"-"+inputDate+"-"+"该日期已经处理,请谨慎输入\n");
-              return;
+                countDownLatch.countDown();
+                return;
             } else {
                 FaSettlementTb faSettlementTbRes = getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), inputDate);
                 DailyPaperTb dailyPaperTb = getDailyDataTb(inputVendorId, franchiseeSiteTb.getSiteId(), inputDate);
@@ -136,20 +150,22 @@ public class Selecter {
 
         if (dailyData == null || dailyData.getFaSettlementTb() == null) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-"+"未找到合适日期\n");
+            countDownLatch.countDown();
             return;
         }
 
         List<Series> resSeries = buildSeries(dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
         if (CollectionUtils.isEmpty(resSeries)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-"+dailyData.getFaSettlementTb().getDate()+"-未获取到任何条目\n");
+            countDownLatch.countDown();
             return ;
         }
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
-
         res.append(modifierData.getKey()+"||"+(int)Math.ceil(modifierData.getWaitWithDraw()/100)+"-"+(int)Math.ceil(modifierData.getAfterWaitDraw()/100)+"\n");
+        countDownLatch.countDown();
     }
 
     private void updateFranchisee(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData) {
@@ -364,11 +380,13 @@ public class Selecter {
         }
         for (DailyPaperTb dailyPaperTb : temp) {
             if (!judgeExists(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate())) {
-                if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < 3000) {
-                   FaSettlementTb faSettlementTb= getFaSettlementTb(inputVendorId,franchiseeSiteTb.getSiteId(),dailyPaperTb.getDate());
-                   if(faSettlementTb!=null)
-                    return new DailyData(dailyPaperTb,
-                            getFaSettlementTb(inputVendorId,franchiseeSiteTb.getSiteId(),dailyPaperTb.getDate()));
+                if(dailyPaperTb.getRechargeCount()>2) {
+                    if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < 3000) {
+                        FaSettlementTb faSettlementTb = getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate());
+                        if (faSettlementTb != null)
+                            return new DailyData(dailyPaperTb,
+                                    getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate()));
+                    }
                 }
             }
         }
@@ -376,11 +394,14 @@ public class Selecter {
         DailyPaperTb res = null;
         double minDiff = 9999999;
         for (DailyPaperTb dailyPaperTb : temp) {
-            if (!judgeExists(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate())) {
-                if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < minDiff) {
-                    minDiff = Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum);
-                    res = dailyPaperTb;
+            if(dailyPaperTb.getRechargeCount()>2) {
+                if (!judgeExists(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate())) {
+                    if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < minDiff) {
+                        minDiff = Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum);
+                        res = dailyPaperTb;
+                    }
                 }
+
             }
         }
         if(res==null)return null;
@@ -449,51 +470,58 @@ public class Selecter {
             }
         }
         List<Series> seriesList = new ArrayList<>();
+        CountDownLatch countDownLatch=new CountDownLatch(originSeries.size());
+
         for (Series series : originSeries) {
-            try {
-                PayTb payTb = series.getPayTb();
-                CommodityOrdersTb commodityOrderTb=fillCO(series,payTb);
-                if (commodityOrderTb==null) continue;
-
-                QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
-                commodityOrderProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
-                        .eq("order_id", commodityOrderTb.getOrderId());
-                List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = commodityOrderProfitSharingTbMapper.selectList(commodityOrderProfitSharingTbQueryWrapper);
-                if (commodityOrderProfitSharingTbs == null || commodityOrderProfitSharingTbs.size() == 0) {
-                    continue;
-                }
-                commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
-                series.setCommodityOrderProfitSharingTbs(commodityOrderProfitSharingTbs);
-                DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
-                if (!filleVpf(franchiseeSiteTb,inputVendorId, series, payTb, commodityOrderProfitSharingTbs)) continue;
-
-                //结算额度
-                DoubleSummaryStatistics orderProfit = commodityOrderProfitSharingTbs.stream().collect(Collectors.summarizingDouble(CommodityOrderProfitSharingTb::getRechargeAmount));
-                Long expireTime = commodityOrderTb.getVipExpiredAt() == 0 ? commodityOrderTb.getPrepaidExpiredAt() : commodityOrderTb.getVipExpiredAt();
-                if (expireTime == 0) {
-                    expireTime = commodityOrderTb.getCreatedAt() + commodityOrderTb.getCouponDuration();
-                }
-
-                String commodityOrderId = null;
-                if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
-                    commodityOrderId = commodityOrderTb.getOrderId();
-                }
-                //结算完毕
-                if (orderProfit.getSum() == payTb.getAmount() || expireTime <= System.currentTimeMillis() / 1000){
-                   List<OrdersTb> ordersTbs= fillOrders(payTb,commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType,
-                           expireTime, commodityOrderId);
-                    if(CollectionUtils.isNotEmpty(ordersTbs)) {
-                        series.setOrdersTbs(ordersTbs);
-                        seriesList.add(series);
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.error("{},e->{}", originSeries, ExceptionUtils.getStackTrace(e));
-                throw new Throwable(ExceptionUtils.getStackTrace(e));
-            }
+            threadPoolExecutor.execute();
+            fillSeriesList(franchiseeSiteTb, inputVendorId, seriesList, series);
         }
         return seriesList;
 
+    }
+
+    private void fillSeriesList(FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, List<Series> seriesList, Series series) throws Throwable {
+        try {
+            PayTb payTb = series.getPayTb();
+            CommodityOrdersTb commodityOrderTb=fillCO(series,payTb);
+            if (commodityOrderTb==null) return;
+
+            QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
+            commodityOrderProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
+                    .eq("order_id", commodityOrderTb.getOrderId());
+            List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = commodityOrderProfitSharingTbMapper.selectList(commodityOrderProfitSharingTbQueryWrapper);
+            if (commodityOrderProfitSharingTbs == null || commodityOrderProfitSharingTbs.size() == 0) {
+                return;
+            }
+            commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
+            series.setCommodityOrderProfitSharingTbs(commodityOrderProfitSharingTbs);
+            DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
+            if (!filleVpf(franchiseeSiteTb, inputVendorId, series, payTb, commodityOrderProfitSharingTbs)) return;
+
+            //结算额度
+            DoubleSummaryStatistics orderProfit = commodityOrderProfitSharingTbs.stream().collect(Collectors.summarizingDouble(CommodityOrderProfitSharingTb::getRechargeAmount));
+            Long expireTime = commodityOrderTb.getVipExpiredAt() == 0 ? commodityOrderTb.getPrepaidExpiredAt() : commodityOrderTb.getVipExpiredAt();
+            if (expireTime == 0) {
+                expireTime = commodityOrderTb.getCreatedAt() + commodityOrderTb.getCouponDuration();
+            }
+
+            String commodityOrderId = null;
+            if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
+                commodityOrderId = commodityOrderTb.getOrderId();
+            }
+            //结算完毕
+            if (orderProfit.getSum() == payTb.getAmount() || expireTime <= System.currentTimeMillis() / 1000){
+               List<OrdersTb> ordersTbs= fillOrders(payTb,commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType,
+                       expireTime, commodityOrderId);
+                if(CollectionUtils.isNotEmpty(ordersTbs)) {
+                    series.setOrdersTbs(ordersTbs);
+                    seriesList.add(series);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("{},e->{}", series, ExceptionUtils.getStackTrace(e));
+            throw new Throwable(ExceptionUtils.getStackTrace(e));
+        }
     }
 
     private List<OrdersTb> fillOrders(PayTb payTb, CommodityOrdersTb commodityOrderTb,
