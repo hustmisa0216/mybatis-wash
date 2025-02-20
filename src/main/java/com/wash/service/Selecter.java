@@ -473,7 +473,7 @@ public class Selecter {
         CountDownLatch countDownLatch=new CountDownLatch(originSeries.size());
 
         for (Series series : originSeries) {
-            threadPoolExecutor.execute();
+            //threadPoolExecutor.execute();
             fillSeriesList(franchiseeSiteTb, inputVendorId, seriesList, series);
         }
         return seriesList;
