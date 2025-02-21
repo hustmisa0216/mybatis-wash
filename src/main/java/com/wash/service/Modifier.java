@@ -4,6 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wash.entity.DailyData;
 import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
+import com.wash.entity.data.CommodityOrdersTb;
+import com.wash.entity.data.OrdersTb;
+import com.wash.entity.data.PayTb;
+import com.wash.entity.data.VendorProfitSharingTb;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.franchisee.FranchiseeTb;
 import com.wash.entity.statistics.DailyPaperTb;
@@ -16,8 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 public class Modifier {
@@ -42,37 +51,77 @@ public class Modifier {
     @Autowired
     private CommodityOrdersTbMapper commodityOrdersTbMapper;
 
+    private static ExecutorService threadPoolExecutor= Executors.newCachedThreadPool();
+
     @Transactional
-    public void delete(List<Series> seriesList) {
+    public void delete(List<Series> seriesList) throws Exception {
+        List<Runnable> tasks=new ArrayList<>();
+        CountDownLatch count=new CountDownLatch(5);
+        tasks.add(()->{
+            List<OrdersTb> ordersTbs=seriesList.stream().flatMap(i->i.getOrdersTbs().stream()).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(ordersTbs)){
+                ordersTbMapper.deleteBatchIds(ordersTbs);
+            }
+            count.countDown();
+        });
+        tasks.add(()->{
+            List<PayTb> payTbs=seriesList.stream().map(Series::getPayTb).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(payTbs)){
+                payTbMapper.deleteBatchIds(payTbs);
+            }
+            count.countDown();
+        });
+        tasks.add(()->{
+            List<CommodityOrdersTb> commodityOrdersTbs=seriesList.stream().map(Series::getCommodityOrderTb).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(commodityOrdersTbs)){
+                commodityOrdersTbMapper.deleteBatchIds(commodityOrdersTbs);
+            }
+            count.countDown();
+        });
+        tasks.add(()->{
+            List<VendorProfitSharingTb> vendorProfitSharingTbs=seriesList.stream().flatMap(i->i.getVendorProfitSharingTbs().stream()).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(vendorProfitSharingTbs)){
+                vendorProfitSharingTbMapper.deleteBatchIds(vendorProfitSharingTbs);
+            }
+            count.countDown();
+        });
 
-        for(Series series:seriesList) {
-            if (CollectionUtils.isNotEmpty(series.getOrdersTbs())) {
-                ordersTbMapper.deleteBatchIds(series.getOrdersTbs());
+        tasks.add(()->{
+            List<VendorProfitSharingTb> parentVs=seriesList.stream().flatMap(i->i.getParentVendorProfitSharingTbs().stream()).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(parentVs)){
+                vendorProfitSharingTbMapper.deleteBatchIds(parentVs);
             }
-            payTbMapper.deleteById(series.getPayTb());
-            commodityOrdersTbMapper.deleteById(series.getCommodityOrderTb());
-            vendorProfitSharingTbMapper.deleteBatchIds(series.getVendorProfitSharingTbs());
-            if (CollectionUtils.isNotEmpty(series.getParentVendorProfitSharingTbs())) {
-                vendorProfitSharingTbMapper.deleteBatchIds(series.getParentVendorProfitSharingTbs());
-            }
+            count.countDown();
+        });
+
+
+        for(Runnable runnable:tasks){
+           threadPoolExecutor.execute(runnable);
         }
-
+        count.await();
     }
     @Transactional
-    public ModifierData update(FranchiseeTb franchiseeTb, int vendorId, DailyData dailyData, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException {
+    public ModifierData update(FranchiseeTb franchiseeTb, int vendorId, DailyData dailyData, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException, InterruptedException {
 
         FaSettlementTb faSettlementTbRes=dailyData.getFaSettlementTb();
         ModifierData modifierData=new ModifierData(dailyData,resSeries,faSettlementTbRes.getDate(),faSettlementTbRes.getSiteId(),vendorId,franchiseeTb.getWaitWithdraw());
         modifierData.generateAmount();
 
-        modifierDailyPaper(franchiseeSiteTb, modifierData);
-        modifierFaSettlement(vendorId,franchiseeSiteTb, faSettlementTbRes, modifierData);
-        modifierMonth(faSettlementTbRes, modifierData);
-
+        CountDownLatch countDownLatch=new CountDownLatch(3);
+        threadPoolExecutor.execute(()->{
+            modifierDailyPaper(franchiseeSiteTb, modifierData,countDownLatch);
+        });
+        threadPoolExecutor.execute(()->{
+            modifierMonth(faSettlementTbRes, modifierData,countDownLatch);
+        });
+        threadPoolExecutor.execute(()->{
+            modifierFaSettlement(vendorId,franchiseeSiteTb, faSettlementTbRes, modifierData,countDownLatch);
+        });
+        countDownLatch.await();
         return modifierData;
     }
 
-    private void modifierMonth(FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
+    private void modifierMonth(FaSettlementTb faSettlementTbRes, ModifierData modifierData, CountDownLatch countDownLatch) {
         int selectMonth= modifierData.getSelectMonth();
         int totalChargeAmount=0;
         int totalChargeCount=0;
@@ -101,9 +150,10 @@ public class Modifier {
                 monthPaperTbMapper.update(null, monthPaperTbUpdateWrapper);
             }
         }
+        countDownLatch.countDown();
     }
 
-    private void modifierFaSettlement(int vendorId, FranchiseeSiteTb franchiseeSiteTb, FaSettlementTb faSettlementTbRes, ModifierData modifierData) {
+    private void modifierFaSettlement(int vendorId, FranchiseeSiteTb franchiseeSiteTb, FaSettlementTb faSettlementTbRes, ModifierData modifierData, CountDownLatch countDownLatch) {
         for(int date: modifierData.getDAY_INCOME_MAP().keySet()){
         UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper=new UpdateWrapper<>();
             int income= modifierData.getDAY_INCOME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
@@ -126,11 +176,10 @@ public class Modifier {
                 faSettlementTbMapper.update(null, parentWrapper);
             }
         }
-
-
+        countDownLatch.countDown();
     }
 
-    private void modifierDailyPaper(FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData) {
+    private void modifierDailyPaper(FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData, CountDownLatch countDownLatch) {
         for (int date : modifierData.getDAY_WASHCOUNT_MAP().keySet()) {//只管日washcount
             UpdateWrapper<DailyPaperTb> dailyPaperTbUpdateWrapper = new UpdateWrapper<>();
             int washCount = modifierData.getDAY_WASHCOUNT_MAP().getOrDefault(date, new AtomicInteger(0)).get();
@@ -174,6 +223,7 @@ public class Modifier {
                 .setSql("recharge_amount_total = recharge_amount_total-"+rechargeAmount)
                 .setSql("vendor_recharge_amount_total = vendor_recharge_amount_total-"+rechargeAmount);
         dailyPaperTbMapper.update(null,curWrapper);
+        countDownLatch.countDown();
 
     }
 }
