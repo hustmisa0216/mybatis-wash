@@ -53,7 +53,6 @@ public class Modifier {
 
     private static ExecutorService threadPoolExecutor= Executors.newCachedThreadPool();
 
-    @Transactional
     public void delete(List<Series> seriesList) throws Exception {
         List<Runnable> tasks=new ArrayList<>();
         CountDownLatch count=new CountDownLatch(5);
@@ -100,7 +99,6 @@ public class Modifier {
         }
         count.await();
     }
-    @Transactional
     public ModifierData update(FranchiseeTb franchiseeTb, int vendorId, DailyData dailyData, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) throws IOException, InterruptedException {
 
         FaSettlementTb faSettlementTbRes=dailyData.getFaSettlementTb();
@@ -154,17 +152,17 @@ public class Modifier {
     }
 
     private void modifierFaSettlement(int vendorId, FranchiseeSiteTb franchiseeSiteTb, FaSettlementTb faSettlementTbRes, ModifierData modifierData, CountDownLatch countDownLatch) {
-        for(int date: modifierData.getDAY_INCOME_MAP().keySet()){
-        UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper=new UpdateWrapper<>();
-            int income= modifierData.getDAY_INCOME_MAP().getOrDefault(date,new AtomicInteger(0)).get();
+        for (int date : modifierData.getDAY_INCOME_MAP().keySet()) {
+            UpdateWrapper<FaSettlementTb> faSettlementTbUpdateWrapper = new UpdateWrapper<>();
+            int income = modifierData.getDAY_INCOME_MAP().getOrDefault(date, new AtomicInteger(0)).get();
             faSettlementTbUpdateWrapper
                     .eq("own_id", vendorId)
-                    .eq("date",date)
+                    .eq("date", date)
                     .eq("site_id", faSettlementTbRes.getSiteId())
-                    .setSql("earnings=earnings-"+income);
-            faSettlementTbMapper.update(null,faSettlementTbUpdateWrapper);
+                    .setSql("earnings=earnings-" + income);
+            faSettlementTbMapper.update(null, faSettlementTbUpdateWrapper);
         }
-        if(modifierData.getParentTotalIncome()>0) {
+        if (modifierData.getParentTotalIncome() > 0) {
             for (int date : modifierData.getPARENT_DAY_INCOME_MAP().keySet()) {
                 UpdateWrapper<FaSettlementTb> parentWrapper = new UpdateWrapper<>();
                 int parentIncome = modifierData.getPARENT_DAY_INCOME_MAP().getOrDefault(date, new AtomicInteger(0)).get();
