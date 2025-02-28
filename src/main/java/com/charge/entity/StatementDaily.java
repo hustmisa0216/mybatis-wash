@@ -28,5 +28,5 @@ public class StatementDaily {
     private int curMonthRechargeUserCount;
     private int curMonthChargeUserCount;
 
-    // Getters and Setters
+
 }

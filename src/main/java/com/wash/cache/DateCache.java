@@ -21,6 +21,9 @@ import java.util.*;
 public class DateCache {
 
     public Map<Integer, Map<Integer, Set<Integer>>> SITE_DATE_MAP = new HashMap<>();
+    public Map<Integer,Set<Integer>> C_DATE_MAP = new HashMap<>();
+
+    public  static final String C_FILE_PATH = "D:\\mogo\\char\\";
 
     @PostConstruct
     public void reload() throws IOException {
@@ -99,5 +102,74 @@ public class DateCache {
         System.out.println(SITE_DATE_MAP);
         }
 
+
+
+    @PostConstruct
+    public void reloadC() throws IOException {
+        File baseDir = new File(C_FILE_PATH);
+
+        //从文件夹层级读取map
+        if (baseDir.isDirectory()) {
+            File[] originDirectories = baseDir.listFiles(File::isDirectory);
+            if (originDirectories == null) {
+                throw new RuntimeException("未读取到历史目录");
+            }
+            for (File vendorDir : originDirectories) {
+                if (!vendorDir.isDirectory()) continue;
+                File[] dateDirs = vendorDir.listFiles();
+                if (dateDirs == null) continue;
+                for (File dateDir : dateDirs) {
+                    if (!dateDir.isDirectory()) continue;
+                    File[] files = dateDir.listFiles();
+                    if (files != null) {
+                        for (File file : files) {
+                            String absFileName = file.getAbsoluteFile().getName();
+                            if (absFileName.equals("date.csv")) {
+                                // 提取 vendorId, date
+                                String path = file.getPath().replace(Recorder.FILE_PATH, "");
+                                long length = file.length();
+                                if (length > 0) {
+                                    String[] pathParts = path.split("\\\\");
+                                    if (pathParts.length >= 3) {
+                                        int vendorId = Integer.valueOf(pathParts[0]); // 3273
+                                        int date = Integer.valueOf(pathParts[1]); // 20240509
+                                        List<String> lines = Files.readAllLines(file.toPath());
+
+                                        int totalAmount = 0;
+                                        int totalPay = 0;
+                                        for (String line : lines) {
+//vendorId+"-"+siteId+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
+
+                                            if (line.contains("||")) {
+                                                String v = line.split("\\|\\|")[2];
+                                                String vs[] = v.replace("(", "").replace(")", "").split("-");
+                                                if (vs.length > 2) {
+                                                    totalPay += Integer.valueOf(vs[1]);
+                                                    totalAmount += Integer.valueOf(vs[2]);
+                                                }
+                                            } else {//旧版本;
+                                                if (line.contains("-")) {
+                                                    String v[] = line.split("-");
+                                                    if (v.length > 6) {
+                                                        totalPay += Integer.valueOf(v[6]);
+                                                        totalAmount += Integer.valueOf(v[7]);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (totalPay > 18000 || totalAmount > 7800) {
+                                            C_DATE_MAP
+                                                    .computeIfAbsent(vendorId, k -> new HashSet<>())
+                                                    .add(date);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }}
 
 }
