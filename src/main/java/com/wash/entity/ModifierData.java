@@ -55,6 +55,7 @@ public class ModifierData {
     private int selectMonth;
     private int curMonth;
     private String key;
+    private String simpleKey;
     private int waitWithDraw;
     private int afterWaitDraw;
 
@@ -111,7 +112,9 @@ public class ModifierData {
         int allPayCount=dailyData.getDailyPaperTb().getRechargeCount();
         int dayRechargeAmount=dailyData.getDailyPaperTb().getRechargeAmount();
         int allIn=dailyData.getFaSettlementTb().getEarnings();
-        this.key=vendorId+"-"+siteId+"-"+selectDate+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
+        this.key=vendorId+"-"+siteId+"-"+selectDate+
+                "||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
+        this.simpleKey=allPayCount+"-"+Math.ceil(dayRechargeAmount/100)+"-"+Math.ceil(allIn/100)+"||"+payCount+"-"+Math.ceil(totalChargeAmount/100)+"-"+Math.ceil(totalIncome/100);
         newPayCount=payCount/2+1;
     }
 

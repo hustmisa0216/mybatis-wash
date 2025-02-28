@@ -121,4 +121,7 @@ public class Recorder {
     public static String buildFileFolder(int vendorId, int siteId, Integer date) {
         return FILE_PATH + vendorId + "/" + siteId + "/" + date+"/"; // 替换为实际路径
     }
+    public static String buildAllPath(int vendorId) {
+        return FILE_PATH + vendorId+"/"; // 替换为实际路径
+    }
 }

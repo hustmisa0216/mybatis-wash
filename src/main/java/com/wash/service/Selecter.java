@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static com.wash.service.Recorder.buildAllPath;
 import static com.wash.service.Recorder.buildFileFolder;
 
 @Component
@@ -167,8 +168,8 @@ public class Selecter {
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
-        record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
         res.append(modifierData.getKey() + "||" + (int) Math.ceil(modifierData.getWaitWithDraw() / 100) + "-" + (int) Math.ceil(modifierData.getAfterWaitDraw() / 100) + "\n");
+        record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
         countDownLatch.countDown();
     }
 
@@ -201,6 +202,13 @@ public class Selecter {
         FileWriter dateWriter = new FileWriter(path + FilesEnum.DATE.getFileName(), true);
         dateWriter.write(modifierData.getKey());
         dateWriter.flush();
+
+        FileWriter allWriter = new FileWriter(buildAllPath(inputVendorId) + FilesEnum.ALL.getFileName(), true);
+        String today=SIMPLE_DATE_FORMAT.format(new Date());
+        String all=franchiseeSiteTb.getSiteId()+","+today+","+dailyData.getFaSettlementTb().getDate()+","+
+                (int) Math.ceil(modifierData.getWaitWithDraw() / 100)+","+(int) Math.ceil(modifierData.getAfterWaitDraw() / 100)+","+modifierData.getSimpleKey();
+        allWriter.write(all+"\n");
+        allWriter.flush();
     }
 
     @Transactional(rollbackFor = Exception.class)
