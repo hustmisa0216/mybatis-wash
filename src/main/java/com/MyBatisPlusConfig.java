@@ -1,4 +1,4 @@
-package com.wash.config;
+package com;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
@@ -8,8 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
-@MapperScan("com.wash.mapper") // 替换为你的 Mapper 包路径
+@MapperScan("com.") // 替换为你的 Mapper 包路径
 public class MyBatisPlusConfig {
+
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
@@ -17,4 +18,6 @@ public class MyBatisPlusConfig {
         interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         return interceptor;
     }
+
+
 }

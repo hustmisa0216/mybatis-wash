@@ -65,12 +65,23 @@ public class CharModifier {
                 date_map.computeIfAbsent(income_site,k->new HashMap<>())
                         .computeIfAbsent(incomeDate,i->new Cdata())
                         .getIncome().addAndGet(commodityOrderProfitSharing.getAmount());
+                if(commodityOrderProfitSharing.getSubType()==1){
+                    date_map.computeIfAbsent(income_site,k->new HashMap<>())
+                            .computeIfAbsent(incomeDate,i->new Cdata())
+                            .getPayment().addAndGet(commodityOrderProfitSharing.getAmount());
+                }else if(commodityOrderProfitSharing.getSubType()==2){
+                    date_map.computeIfAbsent(income_site,k->new HashMap<>())
+                            .computeIfAbsent(incomeDate,i->new Cdata())
+                            .getBalance().addAndGet(commodityOrderProfitSharing.getAmount());
+                }
+
             }
 
             for(ChargeOrder chargeOrder:charEntity.getChargeOrders()){
                 String chargeDates=SIMPLE_DATE_FORMAT.format(new Date(chargeOrder.getCreatedAt()));
                 int chargeDate=Integer.valueOf(chargeDates);
                 int chageMonth=Integer.valueOf(chargeDates.substring(0,6));
+
                 month_map.computeIfAbsent(chargeOrder.getSiteId(),k->new HashMap<>())
                         .computeIfAbsent(chageMonth,i->new Cdata())
                         .getCharge_count().incrementAndGet();
@@ -80,6 +91,9 @@ public class CharModifier {
                 date_map.computeIfAbsent(chargeOrder.getSiteId(),k->new HashMap<>())
                         .computeIfAbsent(chargeDate,i->new Cdata())
                         .getCharge_count().incrementAndGet();
+                date_map.computeIfAbsent(chargeOrder.getSiteId(),k->new HashMap<>())
+                        .computeIfAbsent(chargeDate,i->new Cdata())
+                        .getTimes().addAndGet(chargeOrder.getChargingMinutes());
             }
 
         }

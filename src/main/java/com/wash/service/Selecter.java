@@ -1,6 +1,7 @@
 package com.wash.service;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wash.cache.DateCache;
@@ -38,6 +39,7 @@ import static com.wash.service.Recorder.buildAllPath;
 import static com.wash.service.Recorder.buildFileFolder;
 
 @Component
+@DS("wash")
 public class Selecter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Selecter.class);
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");

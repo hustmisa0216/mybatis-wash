@@ -18,5 +18,9 @@ public class Cdata {
     private AtomicInteger charge_count=new AtomicInteger(0);
     private AtomicInteger income=new AtomicInteger(0);
     private AtomicInteger consume=new AtomicInteger(0);
+    private AtomicInteger times=new AtomicInteger(0);
+
+    private AtomicInteger payment=new AtomicInteger(0);
+    private AtomicInteger balance=new AtomicInteger(0);
 
 }
