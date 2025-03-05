@@ -2,7 +2,6 @@ package com.charge.entity;
 
 import lombok.Data;
 
-import java.math.BigInteger;
 @Data
 public class ChargeOrder {
     private int id;

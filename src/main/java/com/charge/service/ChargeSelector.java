@@ -1,6 +1,6 @@
 package com.charge.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.Query;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.charge.entity.*;
@@ -19,7 +19,6 @@ import com.wash.service.Recorder;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -37,6 +35,7 @@ import java.util.stream.Collectors;
 import static com.wash.service.Recorder.buildFileFolder;
 
 @Component
+@DS("char")
 public class ChargeSelector {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChargeSelector.class);
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
@@ -75,6 +74,8 @@ public class ChargeSelector {
 
     @Autowired
     private DateCache dateCache;
+    @Autowired
+    private Handler handler;
 
     @Autowired
     private DateGenerator dateGenerator;
@@ -88,7 +89,7 @@ public class ChargeSelector {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
 
-    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
+    public String select(Integer inputVendorId) throws Exception {
 
         StringBuffer res=new StringBuffer();
         //STEP0 获取vendor 场地
@@ -130,6 +131,8 @@ public class ChargeSelector {
         charRecorder.record(inputVendorId,selectDate,resEnetities,charModifier);
 
 
+        handler.de(inputVendorId,charModifier);
+        handler.update(inputVendorId,charModifier);
         //每个场地单独处理
 
         return res.toString();
