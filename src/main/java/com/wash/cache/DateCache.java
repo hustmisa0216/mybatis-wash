@@ -63,11 +63,20 @@ public class DateCache {
 
                                             int totalAmount=0;
                                             int totalPay=0;
-                                            for(String line:lines){
+                                            int all=0;
+                                            for(int k=0;k<lines.size();k++){
 //vendorId+"-"+siteId+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
 
+                                                String line= lines.get(k);
+
                                                 if(line.contains("||")){
+
                                                   String v=line.split("\\|\\|")[2];
+                                                    if(k==0){
+                                                        String v1=line.split("\\|\\|")[1];
+                                                        String vs1[] = v1.replace("(","").replace(")","").split("-");
+                                                        all=Integer.valueOf(vs1[1]);
+                                                    }
                                                     String vs[] = v.replace("(","").replace(")","").split("-");
                                                     if (vs.length > 2) {
                                                         totalPay += Integer.valueOf(vs[1]);
@@ -85,6 +94,12 @@ public class DateCache {
                                             }
 
                                             if(totalPay>28000||totalAmount>10800) {
+                                                SITE_DATE_MAP
+                                                        .computeIfAbsent(vendorId, k -> new HashMap<>())
+                                                        .computeIfAbsent(siteId, k -> new HashSet<>())
+                                                        .add(date);
+                                            }
+                                            if(totalPay*3>all){
                                                 SITE_DATE_MAP
                                                         .computeIfAbsent(vendorId, k -> new HashMap<>())
                                                         .computeIfAbsent(siteId, k -> new HashSet<>())
