@@ -546,7 +546,7 @@ public class Selecter {
             }
             //结算完毕
             if (orderProfit.getSum() == payTb.getAmount() || expireTime <= System.currentTimeMillis() / 1000) {
-                List<OrdersTb> ordersTbs = fillOrders(payTb, commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType,
+                List<OrdersTb> ordersTbs = fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType,
                         expireTime, commodityOrderId);
                 if (CollectionUtils.isNotEmpty(ordersTbs)) {
                     series.setOrdersTbs(ordersTbs);
@@ -560,14 +560,14 @@ public class Selecter {
         }
     }
 
-    private List<OrdersTb> fillOrders(PayTb payTb, CommodityOrdersTb commodityOrderTb,
+    public  List<OrdersTb> fillOrders(CommodityOrdersTb commodityOrderTb,
                                       List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs,
                                       DeliveryMethodType deliveryMethodType, Long expireTime,
                                       String commodityOrderId) {
         QueryWrapper<OrdersTb> ordersTbQueryWrapper = new QueryWrapper<>();
         ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
                 .ge("created_at", commodityOrderTb.getCreatedAt())
-                .eq("site_id", payTb.getSiteId())
+                .eq("site_id", commodityOrderTb.getSiteId())
                 .eq(StringUtils.isNotEmpty(commodityOrderId), "commodity_order_id", commodityOrderId);
         List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
 
