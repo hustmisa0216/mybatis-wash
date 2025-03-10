@@ -88,6 +88,8 @@ public class ChargeSelector {
 
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
+    @Autowired
+    private VendorMapper vendorMapper;
 
     public String select(Integer inputVendorId) throws Exception {
 
@@ -123,19 +125,23 @@ public class ChargeSelector {
 
         List<CharEntity> resEnetities=filterEntity(inputVendorId,vendorIncome,charEntities);
 
-
-        CharModifier charModifier=new CharModifier(resEnetities);
+        CharModifier charModifier=new CharModifier(selectDate,pays,resEnetities);
 
         charModifier.calculate(inputVendorId);
 
-        charRecorder.record(inputVendorId,selectDate,resEnetities,charModifier);
-
 
         handler.de(inputVendorId,charModifier);
+        Vendor b=vendorMapper.selectById(inputVendorId);
+        charModifier.setBefore(b.getUndrawnAmount());
         handler.update(inputVendorId,charModifier);
+        Vendor after=vendorMapper.selectById(inputVendorId);
+        charModifier.setAfter(after.getUndrawnAmount());
+        charModifier.buildKey();
+
+        charRecorder.record(inputVendorId,selectDate,resEnetities,charModifier);
         //每个场地单独处理
 
-        return res.toString();
+        return charModifier.buildKey();
     }
 
     private List<CharEntity> filterEntity(Integer inputVendorId, double vendorIncome, List<CharEntity> charEntities) {
@@ -143,31 +149,31 @@ public class ChargeSelector {
         double calAmount = 0;
         double calSum = vendorIncome / 100;
         if (calSum < 100) {
-            calAmount = vendorIncome / 5;
+            calAmount = vendorIncome / 4;
         } else if (calSum < 200) {
-            calAmount = vendorIncome / 7;
+            calAmount = vendorIncome / 5;
         } else if (calSum < 400) {
-            calAmount = vendorIncome / 8;
+            calAmount = vendorIncome / 6;
         } else if (calSum < 600) {
-            calAmount = vendorIncome / 9;
+            calAmount = vendorIncome / 7;
         } else if (calSum < 800) {
-            calAmount = vendorIncome / 10;
+            calAmount = vendorIncome / 8;
         } else if (calSum < 2000) {
-            calAmount = vendorIncome / 13;
+            calAmount = vendorIncome / 11;
         } else {
-            calAmount = vendorIncome / 14;
+            calAmount = vendorIncome / 12;
         }
         charEntities.sort((a,b)-> (int) (a.getPay().getCreatedAt()-b.getPay().getCreatedAt()));
 
         List<CharEntity> res=new ArrayList<>();
         int tempAmount=0;
         Set<Integer> set=new HashSet<>();
-        for (int i = 4; i > 1; i--) {
+        for (int i = 5; i > 1; i--) {
             Iterator<CharEntity> iterator = charEntities.iterator();
             int k = 0;
             while (iterator.hasNext()) {
                 CharEntity charEntity = iterator.next();
-                if (charEntity.getPay().getAmount() > 2 * calAmount) {
+                if (charEntity.getPay().getAmount() > 2 * calAmount||charEntity.getPay().getAmount() >7000) {
                     k++;
                     continue;
                 }
@@ -237,14 +243,19 @@ public class ChargeSelector {
             charEntity.setCommodityOrder(commodityOrder);
             charEntity.setCommodityOrderProfitSharingList(commodityOrderProfitSharings);
             charEntity.setVendorProfitSharingList(vendorProfitSharingList);
-            charEntities.add(charEntity);
+
 
             QueryWrapper<ChargeOrder> chargeOrderQueryWrapper=new QueryWrapper<>();
             chargeOrderQueryWrapper.eq("uid",pay.getUid())
                     .ge("created_at",pay.getCreatedAt()-60);
             List<ChargeOrder> chargeOrders=chargeOrderMapper.selectList(chargeOrderQueryWrapper);
+
             chargeOrders.sort((a,b)-> (int) (a.getCreatedAt()-b.getCreatedAt()));
 
+            if(chargeOrders.size()<40&&chargeOrders.get(chargeOrders.size()-1).getCreatedAt()>System.currentTimeMillis()/1000-20*24*60*60){
+                continue;
+            }
+            charEntities.add(charEntity);
             int temp=0;
             List<ChargeOrder> chargeOrderRes=new ArrayList<>();
             for(ChargeOrder chargeOrder:chargeOrders){
@@ -261,22 +272,22 @@ public class ChargeSelector {
 
     private Integer  selectDate(Integer inputVendorId, List<Integer> siteIds, double vendorIncome) {
 
-        QueryWrapper<StatementVendorDaily> statementDailyQueryWrapper = new QueryWrapper();
-        long lastDateTime = (System.currentTimeMillis() / 1000) - 25 * 24 * 60 * 60;
+        QueryWrapper<StatementsVendorDaily> statementDailyQueryWrapper = new QueryWrapper();
+        long lastDateTime = (System.currentTimeMillis() / 1000) - 27 * 24 * 60 * 60;
         int lastDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(lastDateTime * 1000)));
-        long firstTime = System.currentTimeMillis() / 1000 - 540 * 24 * 60 * 60;
+        long firstTime = System.currentTimeMillis() / 1000 - 430 * 24 * 60 * 60;
         int firstDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(firstTime * 1000)));
 
         statementDailyQueryWrapper.eq("vendor_id",inputVendorId)
                 .ge("date", firstDate)
                 .le("date", lastDate);
 
-        List<StatementVendorDaily> statementDailies=statementVendorDailyMapper.selectList(statementDailyQueryWrapper);
-        TreeMap<Integer, List<StatementVendorDaily>> dateMap = statementDailies.stream()
+        List<StatementsVendorDaily> statementDailies=statementVendorDailyMapper.selectList(statementDailyQueryWrapper);
+        TreeMap<Integer, List<StatementsVendorDaily>> dateMap = statementDailies.stream()
                 .collect(Collectors.toMap(
-                        StatementVendorDaily::getDate,
+                        StatementsVendorDaily::getDate,
                         statementDaily -> {
-                            List<StatementVendorDaily> list = new ArrayList<>();
+                            List<StatementsVendorDaily> list = new ArrayList<>();
                             list.add(statementDaily);
                             return list;
                         },
@@ -293,11 +304,12 @@ public class ChargeSelector {
                     continue;
                 }
             }
-            double chargeSum=dateMap.get(date).stream().mapToDouble(i->i.getProfitSharingTotalAmount()).sum();
-            if(Math.abs(chargeSum-vendorIncome)<3000){
+            double chargeSum=dateMap.get(date).stream().mapToDouble(i->i.getProfitSharingIncomeAmount()).sum();
+            if(Math.abs(chargeSum-vendorIncome)<8000||(chargeSum-vendorIncome<12000&&chargeSum-vendorIncome>0)){
                 return date;
             }
         }
+
         return null;
     }
 
@@ -320,108 +332,19 @@ public class ChargeSelector {
         return siteLatestDatas;
     }
 
-
-    private void updateFranchisee(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData) {
-        UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapper = new UpdateWrapper<>();
-        franchiseeTbUpdateWrapper.eq("id", inputVendorId)
-                .setSql("settled_amount = settled_amount-" + modifierData.getTotalIncome())
-                .setSql("wait_withdraw = wait_withdraw-" + modifierData.getTotalIncome())
-                .setSql("stmt_recharge_amount = stmt_recharge_amount-" + modifierData.getTotalChargeAmount())
-                .setSql("stmt_profit_amount = stmt_profit_amount-" + modifierData.getTotalChargeAmount());
-        franchiseeTbMapper.update(null, franchiseeTbUpdateWrapper);
-
-        if (modifierData.getParentTotalIncome() > 0) {
-            UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapperParent = new UpdateWrapper<>();
-            franchiseeTbUpdateWrapperParent.eq("id", franchiseeSiteTb.getParentId())
-                    .setSql("settled_amount = settled_amount-" + modifierData.getParentTotalIncome())
-                    .setSql("wait_withdraw = wait_withdraw-" + modifierData.getParentTotalIncome())
-                    .setSql("stmt_recharge_amount = stmt_recharge_amount-" + modifierData.getTotalChargeAmount())
-                    .setSql("stmt_profit_amount = stmt_profit_amount-" + modifierData.getTotalChargeAmount());
-            franchiseeTbMapper.update(null, franchiseeTbUpdateWrapperParent);
-        }
-    }
-
-    private void record(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData, DailyData dailyData) throws Exception {
-        FranchiseeTb after = franchiseeTbMapper.selectById(inputVendorId);
-        modifierData.setAfterWaitDraw(after.getWaitWithdraw());
-        recorder.record(inputVendorId, dailyData.getFaSettlementTb(), franchiseeSiteTb, modifierData);
-
-        String path = buildFileFolder(inputVendorId, franchiseeSiteTb.getSiteId(), dailyData.getFaSettlementTb().getDate());
-        FileWriter dateWriter = new FileWriter(path + FilesEnum.DATE.getFileName(), true);
-        dateWriter.write(modifierData.getKey());
-        dateWriter.flush();
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-        // 所有异常均触发回滚
-    ModifierData updateAndDel(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, DailyData dailyData,
-                              List<Series> resSeries, FranchiseeTb franchiseeTb) throws Exception {
-        modifier.delete(resSeries);
-        ModifierData modifierData = modifier.update(franchiseeTb, inputVendorId, dailyData, franchiseeSiteTb, resSeries);
-        return modifierData;
-    }
-
-
-
-    private FaSettlementTb getFaSettlementTb(Integer inputVendorId, Integer siteId, Integer inputDate) {
-
-        List<FaSettlementTb> faSettlementTbs = faSettlementTbMapper.selectList(
-                new QueryWrapper<FaSettlementTb>()
-                        .eq("date", inputDate)
-                        .eq("own_id", inputVendorId)
-                        .eq("site_id", siteId));
-
-        if (CollectionUtils.isNotEmpty(faSettlementTbs)) {
-            return faSettlementTbs.get(0);
-        }
-        return null;
-    }
-
-
-
     //计算最大冗余
     private static int calMaxDiff(double decData) {
         int maxDiff = 0;
         if (decData / 10000 == 0) {
-            maxDiff = 2000;
+            maxDiff = 3000;
         } else if (decData/ 10000 == 1) {
-            maxDiff = 3500;
+            maxDiff = 4500;
         } else if (decData/ 10000 == 2) {
-            maxDiff = 5200;
+            maxDiff = 6200;
         } else {
             maxDiff = 7000;
         }
         return maxDiff;
-    }
-
-    private List<Series> genOriginSeries(List<PayTb> payTbList, FranchiseeSiteTb franchiseeSiteTb) {
-        return payTbList.stream().map(i -> new Series(i, franchiseeSiteTb)).collect(Collectors.toList());
-    }
-
-    //根据选定history 的计算额度
-    public DecData calculateAmount(List<PayTb> payTbList, Integer inputDecAmount) {
-        DoubleSummaryStatistics stats = payTbList.stream()
-                .collect(Collectors.summarizingDouble(PayTb::getAmount));
-        double sum = stats.getSum();
-        double calAmount = 0;
-        double calSum = sum / 100;
-        if (calSum < 100) {
-            calAmount = sum / 4;
-        } else if (calSum < 200) {
-            calAmount = sum / 6;
-        } else if (calSum < 400) {
-            calAmount = sum / 7;
-        } else if (calSum < 600) {
-            calAmount = sum / 8;
-        } else if (calSum < 800) {
-            calAmount = sum / 9;
-        } else if (calSum < 2000) {
-            calAmount = sum / 10;
-        } else {
-            calAmount = sum / 11;
-        }
-        int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
-        return new DecData(sum, decAmount, inputDecAmount != null);
     }
 
     private List<SiteVendor> getFranchiseeSiteTbs(Integer inputVendorId) {
@@ -431,64 +354,5 @@ public class ChargeSelector {
         return franchiseeSiteTbs;
     }
 
-
-
-    public boolean judgeExists(int inputVendorId, int siteId, int date) {
-        Set<Integer> dateSet = new HashSet<>();
-        if (dateCache.SITE_DATE_MAP.containsKey(inputVendorId)) {
-            if (dateCache.SITE_DATE_MAP.get(inputVendorId).containsKey(siteId)) {
-                dateSet = dateCache.SITE_DATE_MAP.get(inputVendorId).get(siteId);
-            }
-        }
-        return dateSet.contains(date);
-    }
-
-
-
-
-    private List<OrdersTb> fillOrders(PayTb payTb, CommodityOrdersTb commodityOrderTb,
-                                      List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs,
-                                      DeliveryMethodType deliveryMethodType, Long expireTime,
-                                      String commodityOrderId) {
-        QueryWrapper<OrdersTb> ordersTbQueryWrapper = new QueryWrapper<>();
-        ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
-                .ge("created_at", commodityOrderTb.getCreatedAt())
-                .eq("site_id", payTb.getSiteId())
-                .eq(StringUtils.isNotEmpty(commodityOrderId), "commodity_order_id", commodityOrderId);
-        List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
-
-        final long exp = expireTime;
-        List<OrdersTb> lastOrders = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(ordersTbs)) {
-            lastOrders = ordersTbs.stream().filter(i -> i.getCreatedAt() > exp).collect(Collectors.toList());
-        }
-        if (CollectionUtils.isNotEmpty(lastOrders)) {
-            long lastMonthTime = System.currentTimeMillis() / 1000 - 30 * 24 * 60 * 60;
-            boolean exists = lastOrders.stream().anyMatch(i -> i.getCreatedAt() > lastMonthTime);
-            if (exists) {
-                return null;
-            }
-        }
-
-        List<OrdersTb> resOrdersTbs = new ArrayList<>();
-        //次卡是否都是一次？
-        if (ordersTbs != null && ordersTbs.size() > 0) {
-            if (deliveryMethodType == DeliveryMethodType.COUPON_WASHING || deliveryMethodType == DeliveryMethodType.PER_USE_CARD) {
-                resOrdersTbs.add(ordersTbs.get(0));
-            } else if (deliveryMethodType == DeliveryMethodType.PREPAID) {
-                if (ordersTbs.size() >= commodityOrderProfitSharingTbs.size()) {
-                    resOrdersTbs.addAll(ordersTbs.subList(0, commodityOrderProfitSharingTbs.size()));
-                } else {
-                    resOrdersTbs.addAll(ordersTbs);
-                }
-            } else if (deliveryMethodType == DeliveryMethodType.VIP_TIME || deliveryMethodType == DeliveryMethodType.PREPAID_SUIT) {
-                List<OrdersTb> vipOrders = ordersTbs.stream().filter(i -> i.getCreatedAt() <= exp).collect(Collectors.toList());
-                resOrdersTbs.addAll(vipOrders);
-            }
-        }
-
-        ordersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
-        return ordersTbs;
-    }
 
 }

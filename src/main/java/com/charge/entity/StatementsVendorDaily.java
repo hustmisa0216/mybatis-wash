@@ -3,7 +3,7 @@ package com.charge.entity;
 import lombok.Data;
 
 @Data
-public class StatementVendorDaily {
+public class StatementsVendorDaily {
     private int id;
     private int date;
     private int vendorId;

@@ -1,5 +1,6 @@
 package com.charge.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 @Data
@@ -12,7 +13,8 @@ public class Pay {
     private int refund;
     private byte type;
     private byte tradeType;
-    private byte for_;
+    @TableField(value = "`for`") // 使用反引号包裹列名
+    private byte rea;
     private byte status;
     private String mchId;
     private String transactionId;

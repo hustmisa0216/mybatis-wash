@@ -23,7 +23,7 @@ public class DateCache {
     public Map<Integer, Map<Integer, Set<Integer>>> SITE_DATE_MAP = new HashMap<>();
     public Map<Integer,Set<Integer>> C_DATE_MAP = new HashMap<>();
 
-    public  static final String C_FILE_PATH = "D:\\mogo\\char\\";
+    public  static final String C_FILE_PATH = "D:\\mogo\\charge\\";
 
     @PostConstruct
     public void reload() throws IOException {
@@ -140,7 +140,7 @@ public class DateCache {
                             String absFileName = file.getAbsoluteFile().getName();
                             if (absFileName.equals("date.csv")) {
                                 // 提取 vendorId, date
-                                String path = file.getPath().replace(Recorder.FILE_PATH, "");
+                                String path = file.getPath().replace(C_FILE_PATH, "");
                                 long length = file.length();
                                 if (length > 0) {
                                     String[] pathParts = path.split("\\\\");
@@ -150,29 +150,28 @@ public class DateCache {
                                         List<String> lines = Files.readAllLines(file.toPath());
 
                                         int totalAmount = 0;
-                                        int totalPay = 0;
+                                        int totalCount = 0;
                                         for (String line : lines) {
-//vendorId+"-"+siteId+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
-
+//selectDate+"||("+allCount+"-"+allAmount+")||("+secCount+"-"+amount+")||("+before+"-"+after+")";
                                             if (line.contains("||")) {
                                                 String v = line.split("\\|\\|")[2];
                                                 String vs[] = v.replace("(", "").replace(")", "").split("-");
-                                                if (vs.length > 2) {
-                                                    totalPay += Integer.valueOf(vs[1]);
-                                                    totalAmount += Integer.valueOf(vs[2]);
+                                                if (vs.length > 1) {
+                                                    totalCount += Integer.valueOf(vs[0]);
+                                                    totalAmount += Integer.valueOf(vs[1]);
                                                 }
                                             } else {//旧版本;
                                                 if (line.contains("-")) {
                                                     String v[] = line.split("-");
                                                     if (v.length > 6) {
-                                                        totalPay += Integer.valueOf(v[6]);
+                                                        totalCount += Integer.valueOf(v[6]);
                                                         totalAmount += Integer.valueOf(v[7]);
                                                     }
                                                 }
                                             }
                                         }
 
-                                        if (totalPay > 18000 || totalAmount > 7800) {
+                                        if (totalCount > 5 || totalAmount > 5800) {
                                             C_DATE_MAP
                                                     .computeIfAbsent(vendorId, k -> new HashSet<>())
                                                     .add(date);

@@ -3,7 +3,7 @@ package com.charge.entity;
 import lombok.Data;
 
 @Data
-public class StatementMonthly {
+public class StatementsMonthly {
     private int id;
     private int date;
     private int cityId;

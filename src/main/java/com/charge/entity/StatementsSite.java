@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 @Data
-public class StatementSite {
+public class StatementsSite {
     private int id;
     private int siteId;
     private int cityId;

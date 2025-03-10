@@ -5,11 +5,8 @@ import com.charge.entity.CharEntity;
 import com.charge.entity.CharModifier;
 import com.charge.entity.ChargeOrder;
 import com.charge.entity.VendorProfitSharing;
-import com.wash.entity.Series;
 import com.wash.entity.constants.FilesEnum;
-import com.wash.entity.data.OrdersTb;
-import com.wash.entity.data.VendorProfitSharingTb;
-import org.apache.commons.collections4.CollectionUtils;
+
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -68,6 +65,10 @@ public class CharRecorder {
                 vendorProfitWriter.flush();
             }
         }
+
+        FileWriter dateWriter = new FileWriter(path + FilesEnum.DATE.getFileName(), true);
+        dateWriter.write(charModifier.buildKey());
+        dateWriter.flush();
 
     }
 
