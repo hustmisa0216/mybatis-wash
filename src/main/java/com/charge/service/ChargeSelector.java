@@ -240,6 +240,9 @@ public class ChargeSelector {
                     .eq("vendor_id",inputVendorId)
                     .in("transaction_id",trans);
             List<VendorProfitSharing> vendorProfitSharingList=vendorProfitSharingMapper.selectList(vendorProfitSharingQueryWrapper);
+            if(CollectionUtils.isEmpty(vendorProfitSharingList)){
+                continue;
+            }
             charEntity.setCommodityOrder(commodityOrder);
             charEntity.setCommodityOrderProfitSharingList(commodityOrderProfitSharings);
             charEntity.setVendorProfitSharingList(vendorProfitSharingList);
