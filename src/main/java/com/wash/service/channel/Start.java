@@ -151,6 +151,9 @@ public class Start {
             }
             for (int date : cAmountMap.keySet()) {
                 CAmount cAmount = cAmountMap.get(date);
+                if(cAmount.getPreAmount().get()==0&&cAmount.getPreAmount().get()==0){
+                    continue;
+                }
                 UpdateWrapper<EnsureIncomeTb> ensureIncomeTbQueryWrapper = new UpdateWrapper<>();
                 ensureIncomeTbQueryWrapper
                         .eq("site_id", siteId)
@@ -159,8 +162,12 @@ public class Start {
                         .setSql(cAmount.getVipAmount().get() != 0, "vip_money = vip_money -" + cAmount.getVipAmount());
                 ensureIncomeTbMapper.update(null, ensureIncomeTbQueryWrapper);
             }
-            commodityOrdersTbMapper.deleteBatchIds(allCommodityOrdersTbList);
-            ordersTbMapper.deleteBatchIds(allOrders);
+            if(CollectionUtils.isNotEmpty(allCommodityOrdersTbList)) {
+                commodityOrdersTbMapper.deleteBatchIds(allCommodityOrdersTbList);
+            }
+            if(CollectionUtils.isNotEmpty(allOrders)) {
+                ordersTbMapper.deleteBatchIds(allOrders);
+            }
 
         }
         return null;

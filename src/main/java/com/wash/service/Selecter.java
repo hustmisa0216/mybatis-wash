@@ -127,13 +127,13 @@ public class Selecter {
         TodayData todayData = null;
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
-            if (todayData == null) {
+            if (todayData == null&&inputSiteId!=null&&inputDecAmount!=null) {
                 countDownLatch.countDown();
                 return;
             }
             double lastDayEar = todayData.getLastDayEar();
             if (size > 3) {
-                if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 8200) {
+                if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 8200||lastDayEar<0) {
                     double amount = inputDecAmount == null ? lastDayEar : inputDecAmount.intValue() * 3;
                     dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
