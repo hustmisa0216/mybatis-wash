@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author liukunpeng@zhidaoauto.com
@@ -36,10 +35,6 @@ public class CharModifier {
     private int before;
     private int after;
 
-
-    public CharModifier(List<CharEntity> resEnetities) {
-        this.charEntityList =resEnetities;
-    }
 
     public CharModifier(Integer selectDate, List<Pay> pays, List<CharEntity> resEnetities) {
         this.selectDate=selectDate;

@@ -37,10 +37,14 @@ public class CharController {
     }
 
     @GetMapping("/dec")
-    public ResponseEntity<String> dec(@RequestParam(value = "inputVendorId", required = true) Integer inputVendorId) {
+    public ResponseEntity<String> dec(@RequestParam(value = "inputVendorId", required = true) Integer inputVendorId,
+                                      @RequestParam(value = "amount", required = false)Integer amount) {
 
+        if(amount!=null&&amount>180){
+            return ResponseEntity.ok("金额不能大于180");
+        }
         try {
-            return ResponseEntity.ok(selecter.select(inputVendorId));
+            return ResponseEntity.ok(selecter.select(inputVendorId,amount));
         } catch (Throwable e) {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             return ResponseEntity.ok(e.getMessage());

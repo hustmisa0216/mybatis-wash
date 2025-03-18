@@ -77,7 +77,7 @@ public class Handler {
                             .setSql("recharge_user_count = recharge_user_count-" + cdata.getRe_count().get())
                             .setSql("cur_month_recharge_user_count = cur_month_recharge_user_count-" + cdata.getRe_count().get());
                     amount += cdata.getAmount().get();
-                    statementDailyMapper.update(null,statementDailyUpdateWrapper);
+                   // statementDailyMapper.update(null,statementDailyUpdateWrapper);
                 }
 
                 statementDailyUpdateWrapper.clear();
@@ -86,7 +86,7 @@ public class Handler {
                     statementDailyUpdateWrapper.eq("site_id", siteId)
                             .ge("date", date)
                             .setSql("recharge_amount_total = recharge_amount_total-" + cdata.getAmount().get());
-                    statementDailyMapper.update(null,statementDailyUpdateWrapper);
+                   // statementDailyMapper.update(null,statementDailyUpdateWrapper);
                 }
                 statementDailyUpdateWrapper.clear();
 
@@ -101,7 +101,7 @@ public class Handler {
                     consume += cdata.getConsume().get();
                     duration += cdata.getTimes().get();
 
-                    statementDailyMapper.update(null,statementDailyUpdateWrapper);
+                   // statementDailyMapper.update(null,statementDailyUpdateWrapper);
                 }
 
                 UpdateWrapper<StatementsVendorDaily> statementVendorDailyUpdateWrapper = new UpdateWrapper<>();
@@ -110,13 +110,13 @@ public class Handler {
                             .eq("site_id", siteId)
                             .eq("date", date)
                             .setSql("profit_sharing_income_amount = profit_sharing_income_amount-" + cdata.getIncome().get());
-                    statementVendorDailyMapper.update(null,statementVendorDailyUpdateWrapper);
+                  //  statementVendorDailyMapper.update(null,statementVendorDailyUpdateWrapper);
                     statementVendorDailyUpdateWrapper.clear();
                     statementVendorDailyUpdateWrapper.eq("vendor_id", vendorId)
                             .eq("site_id", siteId)
                             .ge("date", date)
                             .setSql("profit_sharing_total_amount = profit_sharing_total_amount-" + cdata.getIncome().get());
-                    statementVendorDailyMapper.update(null,statementVendorDailyUpdateWrapper);
+                    // statementVendorDailyMapper.update(null,statementVendorDailyUpdateWrapper);
                     payment += cdata.getPayment().get();
                     balance += cdata.getBalance().get();
                 }
@@ -129,7 +129,7 @@ public class Handler {
                     .setSql("charge_consume_amount = charge_consume_amount-" + consume)
                     .setSql("profit_sharing_payment_amount = profit_sharing_payment_amount-" + payment)
                     .setSql("profit_sharing_balance_amount = profit_sharing_balance_amount-" + balance);
-            statementSiteMapper.update(null,statementSiteUpdateWrapper);
+            //statementSiteMapper.update(null,statementSiteUpdateWrapper);
             allAmount+=amount;
             income+=payment+balance;
         }
@@ -147,7 +147,7 @@ public class Handler {
                             .setSql("recharge_amount = recharge_amount -" + cdata.getAmount().get())
                             .setSql("recharge_times = recharge_times-" + cdata.getRe_count().get())
                             .setSql("recharge_user_count = recharge_user_count-" + cdata.getRe_count().get());
-                    statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
+                    //   statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
                 }
 
                 statementDailyUpdateWrapper.clear();
@@ -158,7 +158,7 @@ public class Handler {
                             .setSql("recharge_amount_total = recharge_amount_total-" + cdata.getAmount().get())
                             .setSql("recharge_user_count_total = recharge_user_count_total-" + cdata.getRe_count().get());
 
-                    statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
+                    //    statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
                 }
                 statementDailyUpdateWrapper.clear();
 
@@ -168,13 +168,13 @@ public class Handler {
                             .setSql("charge_times = charge_times-" + cdata.getCharge_count().get())
                             .setSql("charge_duration = charge_duration-" + cdata.getTimes().get())
                             .setSql("charge_consume_amount = charge_consume_amount-" + cdata.getConsume().get());
-                    statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
+                    // statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
                     statementDailyUpdateWrapper.clear();
 
                     statementDailyUpdateWrapper.eq("site_id", siteId)
                             .ge("date", date)
                             .setSql("charge_times_total = charge_times_total-" + cdata.getCharge_count().get());
-                    statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
+                    //     statementMonthlyMapper.update(null,statementDailyUpdateWrapper);
 
                 }
             }
@@ -184,7 +184,7 @@ public class Handler {
         vendorUpdateWrapper.eq("id",vendorId)
                 .setSql("profit_sharing_amount = profit_sharing_amount-"+allAmount)
                 .setSql("undrawn_amount = undrawn_amount-"+allAmount);
-        vendorMapper.update(null,vendorUpdateWrapper);
+        // vendorMapper.update(null,vendorUpdateWrapper);
 
     }
 

@@ -2,37 +2,24 @@ package com.charge.service;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.charge.entity.*;
 import com.charge.mapper.*;
 import com.wash.cache.DateCache;
-import com.wash.entity.*;
-import com.wash.entity.constants.DeliveryMethodType;
-import com.wash.entity.constants.FilesEnum;
-import com.wash.entity.data.*;
-import com.wash.entity.franchisee.FranchiseeSiteTb;
-import com.wash.entity.franchisee.FranchiseeTb;
-import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.mapper.*;
 import com.wash.service.Modifier;
 import com.wash.service.Recorder;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-
-import static com.wash.service.Recorder.buildFileFolder;
 
 @Component
 @DS("char")
@@ -42,6 +29,9 @@ public class ChargeSelector {
 
     @Autowired
     private Recorder recorder;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private Modifier modifier;
@@ -91,7 +81,7 @@ public class ChargeSelector {
     @Autowired
     private VendorMapper vendorMapper;
 
-    public String select(Integer inputVendorId) throws Exception {
+    public String select(Integer inputVendorId, Integer inputAmount) throws Exception {
 
         StringBuffer res=new StringBuffer();
         //STEP0 获取vendor 场地
@@ -103,15 +93,20 @@ public class ChargeSelector {
 
         List<SiteLatestData> siteLatestData = getSiteLastDatas(siteIds);
 
-        double vendorIncome = siteLatestData.stream().mapToDouble(SiteLatestData::getRechargeAmount).sum();
+        double queryIncome=0;
 
-        Integer selectDate = selectDate(inputVendorId, siteIds, vendorIncome);
+        if(inputAmount!=null){
+            queryIncome=inputAmount*900;
+        }else {
+            queryIncome = siteLatestData.stream().mapToDouble(SiteLatestData::getRechargeAmount).sum();
+        }
+        SelectInfo selectInfo = selectDate(inputVendorId, siteIds, queryIncome);
 
-        if(selectDate==null){
+        if(selectInfo==null){
             return res.toString();
         }
 
-        long startTime=SIMPLE_DATE_FORMAT.parse(selectDate+"").getTime()/1000;
+        long startTime=SIMPLE_DATE_FORMAT.parse(selectInfo.getDate()+"").getTime()/1000;
         QueryWrapper<Pay> payQueryWrapper=new QueryWrapper<>();
         payQueryWrapper.in("site_id",siteIds)
                 .ge("created_at",startTime)
@@ -123,14 +118,13 @@ public class ChargeSelector {
         }
         List<CharEntity> charEntities=fillEntity(inputVendorId,pays);
 
-        List<CharEntity> resEnetities=filterEntity(inputVendorId,vendorIncome,charEntities);
+        List<CharEntity> resEnetities=filterEntity(inputVendorId,selectInfo,charEntities,inputAmount);
 
-        CharModifier charModifier=new CharModifier(selectDate,pays,resEnetities);
+        CharModifier charModifier=new CharModifier(selectInfo.getDate(),pays,resEnetities);
 
         charModifier.calculate(inputVendorId);
 
-
-        handler.de(inputVendorId,charModifier);
+        //handler.de(inputVendorId,charModifier);
         Vendor b=vendorMapper.selectById(inputVendorId);
         charModifier.setBefore(b.getUndrawnAmount());
         handler.update(inputVendorId,charModifier);
@@ -138,14 +132,15 @@ public class ChargeSelector {
         charModifier.setAfter(after.getUndrawnAmount());
         charModifier.buildKey();
 
-        charRecorder.record(inputVendorId,selectDate,resEnetities,charModifier);
+        charRecorder.record(inputVendorId,selectInfo.getDate(),resEnetities,charModifier);
         //每个场地单独处理
 
         return charModifier.buildKey();
     }
 
-    private List<CharEntity> filterEntity(Integer inputVendorId, double vendorIncome, List<CharEntity> charEntities) {
+    private List<CharEntity> filterEntity(Integer inputVendorId, SelectInfo selectInfo, List<CharEntity> charEntities, Integer inputAmount) {
 
+        double vendorIncome=selectInfo.getAmount();
         double calAmount = 0;
         double calSum = vendorIncome / 100;
         if (calSum < 100) {
@@ -162,6 +157,10 @@ public class ChargeSelector {
             calAmount = vendorIncome / 11;
         } else {
             calAmount = vendorIncome / 12;
+        }
+
+        if(inputAmount!=null){
+            calAmount=inputAmount*100;
         }
         charEntities.sort((a,b)-> (int) (a.getPay().getCreatedAt()-b.getPay().getCreatedAt()));
 
@@ -219,6 +218,8 @@ public class ChargeSelector {
             List<CommodityOrder> list=commodityOrderMapper.selectList(commodityOrderQueryWrapper);
             CommodityOrder commodityOrder=list.get(0);
 
+            User user=userMapper.selectById(commodityOrder.getUid());
+            double balance=user.getBalanceRecharge();
             if(commodityOrder.getStatus()!=2){
                 continue;
             }
@@ -255,10 +256,9 @@ public class ChargeSelector {
 
             chargeOrders.sort((a,b)-> (int) (a.getCreatedAt()-b.getCreatedAt()));
 
-            if(chargeOrders.size()<40&&chargeOrders.get(chargeOrders.size()-1).getCreatedAt()>System.currentTimeMillis()/1000-20*24*60*60){
+            if(chargeOrders.size()<30&&chargeOrders.get(chargeOrders.size()-1).getCreatedAt()>System.currentTimeMillis()/1000-26*24*60*60){
                 continue;
             }
-            charEntities.add(charEntity);
             int temp=0;
             List<ChargeOrder> chargeOrderRes=new ArrayList<>();
             for(ChargeOrder chargeOrder:chargeOrders){
@@ -268,12 +268,16 @@ public class ChargeSelector {
                     break;
                 }
             }
+            if(balance>1000&&temp>pay.getAmount()+200){
+                continue;
+            }
             charEntity.setChargeOrders(chargeOrderRes);
+            charEntities.add(charEntity);
         }
         return charEntities;
     }
 
-    private Integer  selectDate(Integer inputVendorId, List<Integer> siteIds, double vendorIncome) {
+    private SelectInfo  selectDate(Integer inputVendorId, List<Integer> siteIds, double vendorIncome) {
 
         QueryWrapper<StatementsVendorDaily> statementDailyQueryWrapper = new QueryWrapper();
         long lastDateTime = (System.currentTimeMillis() / 1000) - 27 * 24 * 60 * 60;
@@ -301,19 +305,40 @@ public class ChargeSelector {
                         TreeMap::new // 使用 TreeMap
                 ));
 
-        for(int date:dateMap.keySet()){
+        TreeMap<Integer,Double> dateSumMap=dateMap.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().stream().mapToDouble(StatementsVendorDaily::getProfitSharingIncomeAmount).sum(),
+                (existing, replacement) -> existing, // 保留第一个值
+                TreeMap::new // 使用 TreeMap
+        ));
+        for(int date:dateSumMap.keySet()){
             if(dateCache.C_DATE_MAP.containsKey(inputVendorId)){
                 if(dateCache.C_DATE_MAP.get(inputVendorId).contains(date)){
                     continue;
                 }
             }
-            double chargeSum=dateMap.get(date).stream().mapToDouble(i->i.getProfitSharingIncomeAmount()).sum();
+            double chargeSum=dateSumMap.get(date);
             if(Math.abs(chargeSum-vendorIncome)<8000||(chargeSum-vendorIncome<12000&&chargeSum-vendorIncome>0)){
-                return date;
+                return new SelectInfo(date,chargeSum);
             }
         }
 
-        return null;
+        double minDiff = Double.MAX_VALUE;
+
+        SelectInfo selectInfo = null;
+        for (Map.Entry<Integer, Double> entry : dateSumMap.entrySet()) {
+            if (dateCache.C_DATE_MAP.containsKey(inputVendorId) &&
+                    dateCache.C_DATE_MAP.get(inputVendorId).contains(entry.getKey())) {
+                continue;
+            }
+
+            double diff = Math.abs(entry.getValue() - vendorIncome);
+            if (diff < minDiff) {
+                minDiff = diff;
+                selectInfo=new SelectInfo(entry.getKey(),entry.getValue());
+            }
+        }
+        return selectInfo;
     }
 
     private List<SiteLatestData> getSiteLastDatas(List<Integer> siteIds) {
