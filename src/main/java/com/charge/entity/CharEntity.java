@@ -20,4 +20,5 @@ public class CharEntity {
     private List<VendorProfitSharing> vendorProfitSharingList;
 
     private List<ChargeOrder> chargeOrders;
+    private User user;
 }

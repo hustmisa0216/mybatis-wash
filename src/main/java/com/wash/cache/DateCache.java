@@ -93,7 +93,7 @@ public class DateCache {
                                                 }
                                             }
 
-                                            if(totalPay>28000||totalAmount>10800) {
+                                            if(totalPay>7600||totalAmount>7500) {
                                                 SITE_DATE_MAP
                                                         .computeIfAbsent(vendorId, k -> new HashMap<>())
                                                         .computeIfAbsent(siteId, k -> new HashSet<>())
