@@ -271,6 +271,7 @@ public class ChargeSelector {
             if(balance>1000&&temp>pay.getAmount()+200){
                 continue;
             }
+            charEntity.setUser(user);
             charEntity.setChargeOrders(chargeOrderRes);
             charEntities.add(charEntity);
         }

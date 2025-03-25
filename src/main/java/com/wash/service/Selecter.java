@@ -1,6 +1,5 @@
 package com.wash.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -33,6 +32,8 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.wash.service.Recorder.buildAllPath;
@@ -85,7 +86,7 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
 
-    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws InterruptedException {
+    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
 
         //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
@@ -94,11 +95,13 @@ public class Selecter {
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
         //每个场地单独处理
         CountDownLatch countDownLatch = new CountDownLatch(franchiseeSiteTbs.size());
+        AtomicInteger totalIncome=new AtomicInteger();
+        AtomicInteger paretnIncome=new AtomicInteger();
         for (FranchiseeSiteTb franchiseeSiteTb : franchiseeSiteTbs) {
             threadPoolExecutor.execute(() -> {
                 try {
                     handleByFsite(franchiseeSiteTbs.size(), inputVendorId, inputSiteId, inputDate, inputDecAmount,
-                            res, franchiseeTb, franchiseeSiteTb, countDownLatch);
+                            res, franchiseeTb, franchiseeSiteTb, countDownLatch,totalIncome,paretnIncome);
                 } catch (Throwable e) {
                     countDownLatch.countDown();
                     LOGGER.error(ExceptionUtils.getStackTrace(e));
@@ -106,11 +109,14 @@ public class Selecter {
             });
         }
 
-        countDownLatch.await();
+        countDownLatch.await(30, TimeUnit.SECONDS);
+        res.append("\n");
+        res.append("总计:"+totalIncome.get()+"-"+paretnIncome.get());
+        dateCache.reload();
         return res.toString();
     }
 
-    private void handleByFsite(int size, Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb, CountDownLatch countDownLatch) throws Throwable {
+    private void handleByFsite(int size, Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb, CountDownLatch countDownLatch, AtomicInteger totalIncome, AtomicInteger paretnIncome) throws Throwable {
         if (franchiseeSiteTb.getDeletedAt() != null) {
             countDownLatch.countDown();
             return;
@@ -132,7 +138,7 @@ public class Selecter {
                 return;
             }
             double lastDayEar = todayData.getLastDayEar();
-            if (size > 3) {
+            if (size > 2) {
                 if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 8200||lastDayEar<0) {
                     double amount = inputDecAmount == null ? lastDayEar : inputDecAmount.intValue() * 3;
                     dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
@@ -169,8 +175,10 @@ public class Selecter {
         }
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
-        updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
+        //updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
+        totalIncome.addAndGet(modifierData.getTotalIncome());
+        paretnIncome.addAndGet(modifierData.getParentTotalIncome());
         res.append(modifierData.getKey() + "||" + (int) Math.ceil(modifierData.getWaitWithDraw() / 100) + "-" + (int) Math.ceil(modifierData.getAfterWaitDraw() / 100) + "\n");
         countDownLatch.countDown();
     }
@@ -217,7 +225,7 @@ public class Selecter {
         // 所有异常均触发回滚
     ModifierData updateAndDel(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, DailyData dailyData,
                               List<Series> resSeries, FranchiseeTb franchiseeTb) throws Exception {
-        modifier.delete(resSeries);
+        //modifier.delete(resSeries);
         ModifierData modifierData = modifier.update(franchiseeTb, inputVendorId, dailyData, franchiseeSiteTb, resSeries);
         return modifierData;
     }
@@ -255,7 +263,7 @@ public class Selecter {
         if (CollectionUtils.isEmpty(payTbList)) {
             return null;
         }
-        if ((decData.getSum() > 32000 || payTbList.size() > 11) && inputVendorId.intValue() != 3287) {
+        if ((decData.getSum() > 100000 || payTbList.size() > 15) && inputVendorId.intValue() != 3287) {
             List<Series> list = filterSeriesByAmount(originSeries, decData);
             seriesList = collectSeries(list, franchiseeSiteTb, inputVendorId, inputDecAmount);
         } else {
@@ -306,20 +314,42 @@ public class Selecter {
                 k++;
             }
         }
+        seriesList.sort(Comparator.comparingInt(a -> a.getPayTb().getAmount()));
+        if(tempAmount<decData.getDecAmount()-2000){
+            for (Series series : seriesList) {
+                if (set.contains(series.getPayTb().getId())) {
+                    continue;
+                }
+                tempAmount+=series.getPayTb().getAmount();
+                if(tempAmount>decData.getDecAmount()+1000){
+                    return  resSeries;
+                }
+                resSeries.add(series);
+            }
+        }
+
         return resSeries;
     }
 
     //计算最大冗余
     private static int calMaxDiff(DecData decData) {
         int maxDiff = 0;
-        if (decData.getDecAmount() / 10000 == 0) {
-            maxDiff = 3000;
-        } else if (decData.getDecAmount() / 10000 == 1) {
-            maxDiff = 5500;
-        } else if (decData.getDecAmount() / 10000 == 2) {
-            maxDiff = 8900;
+        if (decData.getDecAmount() / 5000 == 0) {
+            maxDiff = 1500;
+        } else if (decData.getDecAmount() / 5000 == 1) {
+            maxDiff = 2600;
+        } else if (decData.getDecAmount() / 5000 == 2) {
+            maxDiff = 3200;
+        } else if (decData.getDecAmount() / 5000 == 3) {
+            maxDiff = 4600;
+        } else if (decData.getDecAmount() / 5000 == 4) {
+            maxDiff = 5800;
+        } else if (decData.getDecAmount() / 5000 == 5) {
+            maxDiff = 6900;
+        } else if (decData.getDecAmount() / 5000 == 6) {
+            maxDiff = 8500;
         } else {
-            maxDiff = 11900;
+            maxDiff = 9500;
         }
         return maxDiff;
     }
@@ -338,17 +368,25 @@ public class Selecter {
         if (calSum < 100) {
             calAmount = sum / 4;
         } else if (calSum < 200) {
-            calAmount = sum / 6;
-        } else if (calSum < 400) {
+            calAmount = sum / 5;
+        } else if (calSum < 300) {
             calAmount = sum / 7;
-        } else if (calSum < 600) {
-            calAmount = sum / 8;
-        } else if (calSum < 800) {
+        } else if (calSum < 400) {
             calAmount = sum / 9;
-        } else if (calSum < 2000) {
+        } else if (calSum < 700) {
             calAmount = sum / 10;
-        } else {
+        } else if (calSum < 900) {
             calAmount = sum / 11;
+        } else if (calSum < 1300) {
+            calAmount = sum /12;
+        } else if (calSum < 2000) {
+            calAmount = sum / 13;
+        } else if (calSum < 3000) {
+            calAmount = sum / 14;
+        } else if (calSum < 5000) {
+            calAmount = sum / 15;
+        } else {
+            calAmount = sum / 16;
         }
         int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
         return new DecData(sum, decAmount, inputDecAmount != null);
