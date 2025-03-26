@@ -107,15 +107,15 @@ public class Modifier {
 
         CountDownLatch countDownLatch=new CountDownLatch(3);
         threadPoolExecutor.execute(()->{
-          //  modifierDailyPaper(franchiseeSiteTb, modifierData,countDownLatch);
+            modifierDailyPaper(franchiseeSiteTb, modifierData,countDownLatch);
         });
         threadPoolExecutor.execute(()->{
-           // modifierMonth(faSettlementTbRes, modifierData,countDownLatch);
+            modifierMonth(faSettlementTbRes, modifierData,countDownLatch);
         });
         threadPoolExecutor.execute(()->{
-            //modifierFaSettlement(vendorId,franchiseeSiteTb, faSettlementTbRes, modifierData,countDownLatch);
+            modifierFaSettlement(vendorId,franchiseeSiteTb, faSettlementTbRes, modifierData,countDownLatch);
         });
-        //countDownLatch.await();
+        countDownLatch.await();
         return modifierData;
     }
 

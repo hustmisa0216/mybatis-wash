@@ -93,6 +93,9 @@ public class Selecter {
         if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
+        if(franchiseeTb.getWaitWithdraw()<1800*100){
+            return "无金额可用";
+        }
         //每个场地单独处理
         CountDownLatch countDownLatch = new CountDownLatch(franchiseeSiteTbs.size());
         AtomicInteger totalIncome=new AtomicInteger();
@@ -175,7 +178,7 @@ public class Selecter {
         }
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
-        //updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
+        updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
         totalIncome.addAndGet(modifierData.getTotalIncome());
         paretnIncome.addAndGet(modifierData.getParentTotalIncome());
@@ -225,7 +228,7 @@ public class Selecter {
         // 所有异常均触发回滚
     ModifierData updateAndDel(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, DailyData dailyData,
                               List<Series> resSeries, FranchiseeTb franchiseeTb) throws Exception {
-        //modifier.delete(resSeries);
+        modifier.delete(resSeries);
         ModifierData modifierData = modifier.update(franchiseeTb, inputVendorId, dailyData, franchiseeSiteTb, resSeries);
         return modifierData;
     }
