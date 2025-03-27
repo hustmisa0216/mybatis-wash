@@ -147,7 +147,7 @@ public class Selecter {
                     dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
             } else {
-                if (todayData.getSiteLatestDataTb().getRechargeAmount() > 9800 || lastDayEar > 6800) {
+                if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 9800 || lastDayEar > 6800)) {
                     double amount = inputDecAmount == null ? lastDayEar : inputDecAmount.intValue() * 3;
                     dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
