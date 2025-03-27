@@ -113,7 +113,7 @@ public class Start {
                             .eq("order_id", commodityOrderTb.getOrderId());
                     List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = commodityOrderProfitSharingTbMapper.selectList(commodityOrderProfitSharingTbQueryWrapper);
 
-                    if(CollectionUtils.isEmpty(commodityOrderProfitSharingTbs)){
+                    if (CollectionUtils.isEmpty(commodityOrderProfitSharingTbs)) {
                         continue;
                     }
                     commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
@@ -151,7 +151,7 @@ public class Start {
             }
             for (int date : cAmountMap.keySet()) {
                 CAmount cAmount = cAmountMap.get(date);
-                if(cAmount.getPreAmount().get()==0&&cAmount.getPreAmount().get()==0){
+                if (cAmount.getPreAmount().get() == 0 && cAmount.getPreAmount().get() == 0) {
                     continue;
                 }
                 UpdateWrapper<EnsureIncomeTb> ensureIncomeTbQueryWrapper = new UpdateWrapper<>();
@@ -162,15 +162,46 @@ public class Start {
                         .setSql(cAmount.getVipAmount().get() != 0, "vip_money = vip_money -" + cAmount.getVipAmount());
                 ensureIncomeTbMapper.update(null, ensureIncomeTbQueryWrapper);
             }
-            if(CollectionUtils.isNotEmpty(allCommodityOrdersTbList)) {
+            if (CollectionUtils.isNotEmpty(allCommodityOrdersTbList)) {
                 commodityOrdersTbMapper.deleteBatchIds(allCommodityOrdersTbList);
             }
-            if(CollectionUtils.isNotEmpty(allOrders)) {
+            if (CollectionUtils.isNotEmpty(allOrders)) {
                 ordersTbMapper.deleteBatchIds(allOrders);
             }
 
         }
         return null;
     }
+
+    public String clean(int channelId, int startDate, int endDate) throws Exception {
+        QueryWrapper<ChannelSiteTb> channelSiteTbQueryWrapper = new QueryWrapper<>();
+        channelSiteTbQueryWrapper.eq("channel_id", channelId).isNull("deleted_at");
+        List<ChannelSiteTb> channelSiteTbList = channelSiteTbMapper.selectList(channelSiteTbQueryWrapper);
+
+
+        List<Integer> siteIds;
+        if (CollectionUtils.isEmpty(channelSiteTbList)) {
+            QueryWrapper<ChannelTb> channelTbQueryWrapper = new QueryWrapper<>();
+            channelTbQueryWrapper.eq("id", channelId);
+            ChannelTb channelTb = channelTbMapper.selectOne(channelTbQueryWrapper);
+            List<String> siteids = Arrays.stream(channelTb.getSelfSite().split(",")).collect(Collectors.toList());
+            QueryWrapper<SiteTb> siteTbQueryWrapper = new QueryWrapper<>();
+            siteTbQueryWrapper.in("id", siteids);
+            List<SiteTb> siteTbList = siteTbMapper.selectList(siteTbQueryWrapper);
+            siteIds = siteTbList.stream().map(SiteTb::getId).collect(Collectors.toList());
+        } else {
+            siteIds = channelSiteTbList.stream().map(ChannelSiteTb::getSiteId).collect(Collectors.toList());
+        }
+
+        long dateTimeStart = SIMPLE_DATE_FORMAT.parse(startDate + "").getTime() / 1000;
+        long dateTimeEnd = SIMPLE_DATE_FORMAT.parse(endDate + "").getTime() / 1000;
+
+        for (int siteId : siteIds) {
+
+        }
+            return null;
+    }
+
+
 
 }

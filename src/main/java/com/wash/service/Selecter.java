@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,8 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.wash.service.Recorder.buildAllPath;
-import static com.wash.service.Recorder.buildFileFolder;
+import static com.wash.service.Recorder.*;
 
 @Component
 @DS("wash")
@@ -86,7 +84,7 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
 
-    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
+    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, AtomicInteger allcome) throws Exception {
 
         //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
@@ -115,6 +113,8 @@ public class Selecter {
         countDownLatch.await(30, TimeUnit.SECONDS);
         res.append("\n");
         res.append("总计:"+totalIncome.get()+"-"+paretnIncome.get());
+        allcome.addAndGet(totalIncome.get()+paretnIncome.get());
+        recorder.scheduleRecord(inputVendorId+"",totalIncome.get()+paretnIncome.get());
         dateCache.reload();
         return res.toString();
     }
@@ -223,6 +223,8 @@ public class Selecter {
         allWriter.write(all+"\n");
         allWriter.flush();
     }
+
+
 
     @Transactional(rollbackFor = Exception.class)
         // 所有异常均触发回滚

@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-
 @RestController
 @RequestMapping("/wash") // 设置基础路径
 public class VendorController {
@@ -51,7 +48,7 @@ public class VendorController {
         }
 
         try {
-           return ResponseEntity.ok(selecter.select(inputVendorId, inputSiteId, inputDate, inputDecAmount));
+           return ResponseEntity.ok(selecter.select(inputVendorId, inputSiteId, inputDate, inputDecAmount, null));
         } catch (Throwable e) {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             return ResponseEntity.ok(e.getMessage());

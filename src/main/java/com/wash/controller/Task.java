@@ -1,5 +1,6 @@
 package com.wash.controller;
 
+import com.wash.service.Recorder;
 import com.wash.service.Selecter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author liukunpeng@zhidaoauto.com
@@ -25,6 +27,9 @@ import java.io.IOException;
 public class Task {
     @Autowired
     private Selecter selecter;
+
+    @Autowired
+    private Recorder recorder;
 
         // ... existing code ...
 
@@ -215,15 +220,17 @@ public class Task {
                     "3124\n" +
                     "3176";
 
+            AtomicInteger allcome=new AtomicInteger(0);
             String v[]=all.split("\n");
             for(String s:v){
                 try{
-                    String tt=selecter.select(Integer.valueOf(s), null, null, null);
+                    String tt=selecter.select(Integer.valueOf(s), null, null, null,allcome);
                     System.out.println("res:"+tt+"\n");
                 }catch (Exception e){
                     System.out.println(ExceptionUtils.getStackTrace(e));
                 }
             }
+            recorder.scheduleRecord("all",allcome.get());
         }
 
 
