@@ -15,7 +15,7 @@ public enum FilesEnum {
     SERIES_JSON("Series","series.csv"),
     //SQLS("语句","update.csv"), 未实现
     DATE("成功后日期","date.csv"),
-
+    SCH("定时","sch.csv"),
     ALL("累计","all.csv");
 
     private String msg;

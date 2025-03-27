@@ -124,7 +124,7 @@ public class ChargeSelector {
 
         charModifier.calculate(inputVendorId);
 
-        //handler.de(inputVendorId,charModifier);
+        handler.de(inputVendorId,charModifier);
         Vendor b=vendorMapper.selectById(inputVendorId);
         charModifier.setBefore(b.getUndrawnAmount());
         handler.update(inputVendorId,charModifier);

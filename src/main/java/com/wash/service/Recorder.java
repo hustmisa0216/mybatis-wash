@@ -13,12 +13,16 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 
 
 @Service
 public class Recorder {
     public  static final String FILE_PATH = "D:\\mogo\\wash\\";
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
     public void record(int vendorId, FaSettlementTb faSettlementTbRes, FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData)
             throws Exception {
@@ -117,6 +121,22 @@ public class Recorder {
             }
         }
     }
+
+    public void scheduleRecord(String inputVendorId,int income) {
+
+        if (income > 0) {
+            String path = FILE_PATH + "/"; // 替换为实际路径
+            String date = SIMPLE_DATE_FORMAT.format(new Date());
+            try {
+                FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
+                dateWriter.write(inputVendorId + "," + date + "," + income + "\n");
+                dateWriter.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 
     public static String buildFileFolder(int vendorId, int siteId, Integer date) {
         return FILE_PATH + vendorId + "/" + siteId + "/" + date+"/"; // 替换为实际路径

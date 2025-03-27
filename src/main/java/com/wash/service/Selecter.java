@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,8 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.wash.service.Recorder.buildAllPath;
-import static com.wash.service.Recorder.buildFileFolder;
+import static com.wash.service.Recorder.*;
 
 @Component
 @DS("wash")
@@ -86,13 +84,16 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
 
-    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
+    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, AtomicInteger allcome) throws Exception {
 
         //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
         if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
+        if(franchiseeTb.getWaitWithdraw()<1800*100){
+            return "无金额可用";
+        }
         //每个场地单独处理
         CountDownLatch countDownLatch = new CountDownLatch(franchiseeSiteTbs.size());
         AtomicInteger totalIncome=new AtomicInteger();
@@ -112,6 +113,8 @@ public class Selecter {
         countDownLatch.await(30, TimeUnit.SECONDS);
         res.append("\n");
         res.append("总计:"+totalIncome.get()+"-"+paretnIncome.get());
+        allcome.addAndGet(totalIncome.get()+paretnIncome.get());
+        recorder.scheduleRecord(inputVendorId+"",totalIncome.get()+paretnIncome.get());
         dateCache.reload();
         return res.toString();
     }
@@ -175,7 +178,7 @@ public class Selecter {
         }
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
-        //updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
+        updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
         totalIncome.addAndGet(modifierData.getTotalIncome());
         paretnIncome.addAndGet(modifierData.getParentTotalIncome());
@@ -221,11 +224,13 @@ public class Selecter {
         allWriter.flush();
     }
 
+
+
     @Transactional(rollbackFor = Exception.class)
         // 所有异常均触发回滚
     ModifierData updateAndDel(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, DailyData dailyData,
                               List<Series> resSeries, FranchiseeTb franchiseeTb) throws Exception {
-        //modifier.delete(resSeries);
+        modifier.delete(resSeries);
         ModifierData modifierData = modifier.update(franchiseeTb, inputVendorId, dailyData, franchiseeSiteTb, resSeries);
         return modifierData;
     }
