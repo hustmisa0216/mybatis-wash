@@ -84,8 +84,9 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
 
-    public String select(Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, AtomicInteger allcome) throws Exception {
+    public String select(TaskRecord taskRecord, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
 
+        int inputVendorId = taskRecord.getVen();
         //STEP0 获取vendor 场地
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
         if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
@@ -113,8 +114,9 @@ public class Selecter {
         countDownLatch.await(30, TimeUnit.SECONDS);
         res.append("\n");
         res.append("总计:"+totalIncome.get()+"-"+paretnIncome.get());
-        allcome.addAndGet(totalIncome.get()+paretnIncome.get());
-        recorder.scheduleRecord(inputVendorId+"",totalIncome.get()+paretnIncome.get());
+        if(totalIncome.get()+paretnIncome.get()>0){
+            taskRecord.getSiteMap().put(inputSiteId,new AtomicInteger(totalIncome.get()+paretnIncome.get()));
+        }
         dateCache.reload();
         return res.toString();
     }

@@ -1,5 +1,6 @@
 package com.wash.controller;
 
+import com.wash.entity.TaskRecord;
 import com.wash.service.Selecter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class VendorController {
         }
 
         try {
-           return ResponseEntity.ok(selecter.select(inputVendorId, inputSiteId, inputDate, inputDecAmount, null));
+           return ResponseEntity.ok(selecter.select(new TaskRecord(inputVendorId), inputSiteId, inputDate, inputDecAmount));
         } catch (Throwable e) {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             return ResponseEntity.ok(e.getMessage());

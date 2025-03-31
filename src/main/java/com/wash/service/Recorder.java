@@ -3,6 +3,7 @@ package com.wash.service;
 import com.alibaba.fastjson.JSON;
 import com.wash.entity.ModifierData;
 import com.wash.entity.Series;
+import com.wash.entity.TaskRecord;
 import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.OrdersTb;
 import com.wash.entity.data.VendorProfitSharingTb;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Service
@@ -122,21 +125,31 @@ public class Recorder {
         }
     }
 
-    public void scheduleRecord(String inputVendorId,int income) {
-
-        if (income > 0) {
+    public void scheduleRecord(Map<Integer, TaskRecord> map) {
+        AtomicInteger allcome = new AtomicInteger(0);
+        try {
             String path = FILE_PATH + "/"; // 替换为实际路径
             String date = SIMPLE_DATE_FORMAT.format(new Date());
-            try {
-                FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
-                dateWriter.write(date + "," + inputVendorId + "," + income + "\n");
-                dateWriter.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
+            for (int ven : map.keySet()) {
+                TaskRecord taskRecord = map.get(ven);
+                if (taskRecord != null && taskRecord.getSiteMap() != null) {
+                    Map<Integer, AtomicInteger> siteMap = taskRecord.getSiteMap();
+                    int inputVendorId = taskRecord.getVen();
+                    int income = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
+                    allcome.addAndGet(income);
+                    if (income > 0) {
+                        dateWriter.write(date + "," + inputVendorId + "," + income + "\n");
+                        dateWriter.flush();
+                    }
+                }
             }
+            dateWriter.write(date + "," + "all" + "," + allcome + "\n");
+            dateWriter.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
-
 
     public static String buildFileFolder(int vendorId, int siteId, Integer date) {
         return FILE_PATH + vendorId + "/" + siteId + "/" + date+"/"; // 替换为实际路径
