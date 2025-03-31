@@ -129,7 +129,7 @@ public class Recorder {
             String date = SIMPLE_DATE_FORMAT.format(new Date());
             try {
                 FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
-                dateWriter.write(inputVendorId + "," + date + "," + income + "\n");
+                dateWriter.write(date + "," + inputVendorId + "," + income + "\n");
                 dateWriter.flush();
             } catch (IOException e) {
                 throw new RuntimeException(e);
