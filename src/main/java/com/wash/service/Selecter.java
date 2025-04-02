@@ -144,14 +144,14 @@ public class Selecter {
             }
             double lastDayEar = todayData.getLastDayEar();
             if (size > 2) {
-                if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 8200||lastDayEar<0) {
+                if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 9600||lastDayEar<0) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
                     int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + 2*lastDayEar) / 3);
                     double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
             } else {
-                if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 7800 || lastDayEar > 5800)) {
+                if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 11400 || lastDayEar > 8200)) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
                     int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + lastDayEar) / 2);
                     double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
@@ -380,33 +380,33 @@ public class Selecter {
         double calAmount = 0;
         double calSum = sum / 100;
         if (calSum < 80) {
-            calAmount = sum / 4;
-        } else if (calSum < 140) {
             calAmount = sum / 5;
-        } else if (calSum < 210) {
+        } else if (calSum < 140) {
             calAmount = sum / 6;
-        } else if (calSum < 280) {
+        } else if (calSum < 210) {
             calAmount = sum / 7;
-        } else if (calSum < 400) {
+        } else if (calSum < 280) {
             calAmount = sum / 8;
-        } else if (calSum < 510) {
+        } else if (calSum < 400) {
             calAmount = sum / 9;
-        } else if (calSum < 630) {
+        } else if (calSum < 510) {
             calAmount = sum / 10;
-        } else if (calSum < 820) {
+        } else if (calSum < 630) {
             calAmount = sum / 11;
-        } else if (calSum < 1080) {
+        } else if (calSum < 820) {
             calAmount = sum / 12;
+        } else if (calSum < 1080) {
+            calAmount = sum / 13;
         } else if (calSum < 1400) {
-            calAmount = sum /13;
+            calAmount = sum /14;
         } else if (calSum < 1800) {
-            calAmount = sum / 14;
-        } else if (calSum < 2400) {
             calAmount = sum / 15;
-        } else if (calSum < 3200) {
+        } else if (calSum < 2400) {
             calAmount = sum / 16;
-        } else {
+        } else if (calSum < 3200) {
             calAmount = sum / 17;
+        } else {
+            calAmount = sum / 18;
         }
         int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
         return new DecData(sum, decAmount, inputDecAmount != null);
