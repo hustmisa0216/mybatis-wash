@@ -378,35 +378,37 @@ public class Selecter {
                 .collect(Collectors.summarizingDouble(PayTb::getAmount));
         double sum = stats.getSum();
         double calAmount = 0;
+        int inc=1;
+        int incr=2;
         double calSum = sum / 100;
         if (calSum < 80) {
-            calAmount = sum / 5;
+            calAmount = sum / (5+inc);
         } else if (calSum < 140) {
-            calAmount = sum / 6;
+            calAmount = sum / (6+inc);
         } else if (calSum < 210) {
-            calAmount = sum / 7;
+            calAmount = sum / (7+inc);
         } else if (calSum < 280) {
-            calAmount = sum / 8;
+            calAmount = sum / (8+inc);
         } else if (calSum < 400) {
-            calAmount = sum / 9;
+            calAmount = sum / (9+incr);
         } else if (calSum < 510) {
-            calAmount = sum / 10;
+            calAmount = sum / (10+incr);
         } else if (calSum < 630) {
-            calAmount = sum / 11;
+            calAmount = sum / (11+incr);
         } else if (calSum < 820) {
-            calAmount = sum / 12;
+            calAmount = sum / (12+incr);
         } else if (calSum < 1080) {
-            calAmount = sum / 13;
+            calAmount = sum / (13+incr);
         } else if (calSum < 1400) {
-            calAmount = sum /14;
+            calAmount = sum /(14+incr);
         } else if (calSum < 1800) {
-            calAmount = sum / 15;
+            calAmount = sum / (15+incr);
         } else if (calSum < 2400) {
-            calAmount = sum / 16;
+            calAmount = sum / (16+incr);
         } else if (calSum < 3200) {
-            calAmount = sum / 17;
+            calAmount = sum / (17+incr);
         } else {
-            calAmount = sum / 18;
+            calAmount = sum / (18+incr);
         }
         int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
         return new DecData(sum, decAmount, inputDecAmount != null);
@@ -442,7 +444,8 @@ public class Selecter {
         QueryWrapper<DailyPaperTb> dailyPaperTbQueryWrapper = new QueryWrapper();
         long lastDateTime = (System.currentTimeMillis() / 1000) - 25 * 24 * 60 * 60;
         int lastDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(lastDateTime * 1000)));
-        long firstTime = System.currentTimeMillis() / 1000 - 540 * 24 * 60 * 60;
+        int dayBefore=inputVendorId.intValue()==3191?320:540;
+        long firstTime = System.currentTimeMillis() / 1000 - dayBefore * 24 * 60 * 60;
         int firstDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(firstTime * 1000)));
 
         dailyPaperTbQueryWrapper
@@ -456,10 +459,22 @@ public class Selecter {
         if (inputDecAmount == null && siteSum < 9800) {//低于这个就没必要了
             return null;
         }
+        int maxDiff= 3800;
+        if(siteSum>=15000&&siteSum<30000){
+            maxDiff=5000;
+        }else if(siteSum>=30000&&siteSum<50000){
+            maxDiff=10000;
+        }else if(siteSum>=50000&&siteSum<80000){
+            maxDiff=15000;
+        }else if(siteSum>=80000&&siteSum<120000){
+            maxDiff=25000;
+        }else if(siteSum>=120000){
+            maxDiff=35000;
+        }
         for (DailyPaperTb dailyPaperTb : temp) {
             if (!judgeExists(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate())) {
                 if (dailyPaperTb.getRechargeCount() > 2) {
-                    if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < 3000) {
+                    if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < maxDiff) {
                         FaSettlementTb faSettlementTb = getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate());
                         if (faSettlementTb != null)
                             return new DailyData(dailyPaperTb,
