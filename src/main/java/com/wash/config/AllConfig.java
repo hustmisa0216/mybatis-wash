@@ -584,6 +584,4 @@ public class AllConfig {
             "3448\t1266\n" +
             "3166\t652\n" +
             "3177\t1071";
-
-
 }
