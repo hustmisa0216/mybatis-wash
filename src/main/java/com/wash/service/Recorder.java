@@ -16,9 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -131,18 +129,26 @@ public class Recorder {
             String path = FILE_PATH + "/"; // 替换为实际路径
             String date = SIMPLE_DATE_FORMAT.format(new Date());
             FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
+            List<TaskRecord> taskRecordList=new ArrayList<>();
             for (int ven : map.keySet()) {
                 TaskRecord taskRecord = map.get(ven);
                 if (taskRecord != null && taskRecord.getSiteMap() != null) {
                     Map<Integer, AtomicInteger> siteMap = taskRecord.getSiteMap();
                     int inputVendorId = taskRecord.getVen();
                     int income = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
+                    taskRecord.setDec(income);
                     allcome.addAndGet(income);
                     if (income > 0) {
-                        dateWriter.write(date + "," + inputVendorId + "," + income + "\n");
-                        dateWriter.flush();
+                        taskRecordList.add(taskRecord);
                     }
+                    taskRecord.setPercent((int)((double)income*100/taskRecord.getCurIn().get()));
                 }
+            }
+
+            taskRecordList.sort((a,b)->b.getPercent()-a.getPercent());
+            for(TaskRecord taskRecord:taskRecordList){
+                dateWriter.write(date + "," + taskRecord.getVen() + "," + taskRecord.getDec()+","+taskRecord.getCurRe()+"," +taskRecord.getCurIn()+ ","+taskRecord.getPercent()+"%\n");
+                dateWriter.flush();
             }
             dateWriter.write(date + "," + "all" + "," + allcome + "\n");
             dateWriter.flush();

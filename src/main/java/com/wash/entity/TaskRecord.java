@@ -18,6 +18,10 @@ public class TaskRecord {
     private int ven;
     Map<Integer, AtomicInteger> siteMap=new HashMap<>();
     private int date;
+    private AtomicInteger curRe;
+    private AtomicInteger curIn;
+    private int dec;
+    private int percent;
 
     public TaskRecord(int ven){
       this.ven=ven;

@@ -103,7 +103,7 @@ public class Selecter {
             threadPoolExecutor.execute(() -> {
                 try {
                     handleByFsite(franchiseeSiteTbs.size(), inputVendorId, inputSiteId, inputDate, inputDecAmount,
-                            res, franchiseeTb, franchiseeSiteTb, countDownLatch,totalIncome,paretnIncome);
+                            res, franchiseeTb, franchiseeSiteTb, countDownLatch,totalIncome,paretnIncome,taskRecord);
                 } catch (Throwable e) {
                     countDownLatch.countDown();
                     LOGGER.error(ExceptionUtils.getStackTrace(e));
@@ -121,7 +121,8 @@ public class Selecter {
         return res.toString();
     }
 
-    private void handleByFsite(int size, Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb, CountDownLatch countDownLatch, AtomicInteger totalIncome, AtomicInteger paretnIncome) throws Throwable {
+    private void handleByFsite(int size, Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb,
+                               CountDownLatch countDownLatch, AtomicInteger totalIncome, AtomicInteger paretnIncome, TaskRecord taskRecord) throws Throwable {
         if (franchiseeSiteTb.getDeletedAt() != null) {
             countDownLatch.countDown();
             return;
@@ -175,6 +176,8 @@ public class Selecter {
             countDownLatch.countDown();
             return;
         }
+        taskRecord.getCurRe().addAndGet(todayData.getSiteLatestDataTb().getRechargeAmount()/100);
+        taskRecord.getCurIn().addAndGet(todayData.getLastDayEar()/100);
 
         List<Series> resSeries = buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
         if (CollectionUtils.isEmpty(resSeries)) {
