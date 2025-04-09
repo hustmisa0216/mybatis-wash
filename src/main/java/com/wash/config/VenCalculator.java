@@ -1,5 +1,6 @@
 package com.wash.config;
 
+import com.wash.entity.DecData;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -18,36 +19,36 @@ import java.util.stream.Collectors;
     @Component
 public class VenCalculator {
 
-    private static final Map<Integer,Integer> proportion_map1=new HashMap<>();
-    private static final Map<Integer,Integer> proportion_map2=new HashMap<>();
-    private static final Map<Integer,Integer> proportion_map3=new HashMap<>();
-    private static final Map<Integer,Integer> proportion_map4=new HashMap<>();
+    private static final LinkedHashMap<Integer,Integer> proportion_map1=new LinkedHashMap<>();
+    private static final LinkedHashMap<Integer,Integer> proportion_map2=new LinkedHashMap<>();
+    private static final LinkedHashMap<Integer,Integer> proportion_map3=new LinkedHashMap<>();
+    private static final LinkedHashMap<Integer,Integer> proportion_map4=new LinkedHashMap<>();
 
-    private static final Map<Integer,Integer> constants_map1=new HashMap<>();
-    private static final Map<Integer,Integer> constants_map2=new HashMap<>();
-    private static final Map<Integer,Integer> constants_map3=new HashMap<>();
-    private static final Map<Integer,Integer> constants_map4=new HashMap<>();
+//    private static final Map<Integer,Integer> constants_map1=new HashMap<>();
+//    private static final Map<Integer,Integer> constants_map2=new HashMap<>();
+//    private static final Map<Integer,Integer> constants_map3=new HashMap<>();
+//    private static final Map<Integer,Integer> constants_map4=new HashMap<>();
 
-    private static final Map<Integer, Map<Integer, Integer>> categoryMap = new HashMap<>();
+    private static final Map<Integer, LinkedHashMap<Integer, Integer>> categoryMap = new HashMap<>();
 
     @PostConstruct
     public void fillMap(){
         // 初始化proportion_map1
         proportion_map1.put(80, 4);
-        proportion_map1.put(140, 5);
-        proportion_map1.put(210, 6);
-        proportion_map1.put(280, 7);
-        proportion_map1.put(400, 8);
-        proportion_map1.put(510, 9);
-        proportion_map1.put(630, 10);
-        proportion_map1.put(820, 11);
-        proportion_map1.put(1080, 12);
-        proportion_map1.put(1400, 13);
-        proportion_map1.put(1800, 14);
-        proportion_map1.put(2400, 15);
-        proportion_map1.put(3200, 16);
+        proportion_map1.put(140, 4);
+        proportion_map1.put(210, 5);
+        proportion_map1.put(280, 6);
+        proportion_map1.put(400, 7);
+        proportion_map1.put(510, 8);
+        proportion_map1.put(630, 9);
+        proportion_map1.put(820, 10);
+        proportion_map1.put(1080, 11);
+        proportion_map1.put(1400, 12);
+        proportion_map1.put(1800, 13);
+        proportion_map1.put(2400, 14);
+        proportion_map1.put(3200, 15);
         // 对于大于3200的情况，使用默认值
-        proportion_map1.put(Integer.MAX_VALUE, 17);
+        proportion_map1.put(Integer.MAX_VALUE, 16);
 
         proportion_map2.put(80, 5);
         proportion_map2.put(140, 6);
@@ -106,18 +107,27 @@ public class VenCalculator {
     }
 
     
-    public double calculateAmount(double sum, double calSum,Map<Integer,Integer> pmap) {
+    public DecData calculateAmount(int venId, double sum, Integer inputDecAmount) {
+        int category = fromVen(venId);
+        Map<Integer,Integer> proportionMap=categoryMap.get(category);
+        if(proportionMap==null){
+            return new DecData(sum,0,inputDecAmount != null);
+        }
         int divisor = 0;
-        for (Map.Entry<Integer, Integer> entry : pmap.entrySet()) {
+        double calSum = sum / 100;
+
+        for (Map.Entry<Integer, Integer> entry : proportionMap.entrySet()) {
             if (calSum < entry.getKey()) {
                 divisor = entry.getValue();
                 break;
             }
         }
-        return sum / divisor;
+        double calAmount = sum / divisor;
+        int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
+        return new DecData(sum, decAmount, inputDecAmount != null);
     }
 
-    public Integer fromVen(int ven){
+    public int fromVen(int ven){
         Set<Integer> set1 = Arrays.stream("3191,3433,3353,3243,3250,3203,3229,3024".split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
@@ -147,9 +157,65 @@ public class VenCalculator {
 
     }
 
-    public static void main(String[] args) {
+    //根据选定history 的计算额度
+    public DecData calculateAmount(int inputVendorId,int size, double sum, Integer inputDecAmount) {
 
+        double calAmount = 0;
+        int inc=1;
+        int incr=2;
+
+        if(inputVendorId==3191){
+            inc=-1;
+            incr=-1;
+        }
+        if(inputVendorId==3362||inputVendorId==3122||inputVendorId==3433){
+            inc=0;
+            incr=0;
+        }
+        double calSum = sum / 100;
+        if (calSum < 80) {
+            calAmount = sum / (5+inc);
+        } else if (calSum < 140) {
+            calAmount = sum / (6+inc);
+        } else if (calSum < 210) {
+            calAmount = sum / (7+inc);
+        } else if (calSum < 280) {
+            calAmount = sum / (8+inc);
+        } else if (calSum < 400) {
+            calAmount = sum / (9+incr);
+        } else if (calSum < 510) {
+            calAmount = sum / (10+incr);
+        } else if (calSum < 630) {
+            calAmount = sum / (11+incr);
+        } else if (calSum < 820) {
+            calAmount = sum / (12+incr);
+        } else if (calSum < 1080) {
+            calAmount = sum / (13+incr);
+        } else if (calSum < 1400) {
+            calAmount = sum /(14+incr);
+        } else if (calSum < 1800) {
+            calAmount = sum / (15+incr);
+        } else if (calSum < 2400) {
+            calAmount = sum / (16+incr);
+        } else if (calSum < 3200) {
+            calAmount = sum / (17+incr);
+        } else {
+            calAmount = sum / (18+incr);
+        }
+        int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
+        return new DecData(sum, decAmount, inputDecAmount != null);
     }
 
+
+    public static void main(String[] args) {
+
+        double percent=Math.round((double) 79 * 10000 / 145)/100.0;
+
+        System.out.println(percent);
+        VenCalculator venCalculator = new VenCalculator();
+        venCalculator.fillMap();
+        DecData decData = venCalculator.calculateAmount(3323, 200*100, null);
+        System.out.println(decData);
+    }
 
 }

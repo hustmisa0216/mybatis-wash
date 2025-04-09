@@ -21,10 +21,14 @@ public class TaskRecord {
     private AtomicInteger curRe=new AtomicInteger(0);
     private AtomicInteger curIn=new AtomicInteger(0);
     private int dec;
-    private int percent;
+    private double percent;
 
     public TaskRecord(int ven){
       this.ven=ven;
+    }
+
+    public  String genRecord(){
+        return date + "," + ven + "," + dec+","+curRe.get()+"," +curIn.get()+ ","+percent+"%";
     }
 
 

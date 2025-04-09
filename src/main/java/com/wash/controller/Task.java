@@ -46,7 +46,6 @@ public class Task {
                 String ss[]=s.split("\t");
                 int ven=Integer.valueOf(ss[0]);
                 int com=Integer.valueOf(ss[1]);
-
                 TaskRecord taskRecord=map.computeIfAbsent(ven,k->new TaskRecord(ven));
                 try{
                     String tt=selecter.select(taskRecord, com, null, null);

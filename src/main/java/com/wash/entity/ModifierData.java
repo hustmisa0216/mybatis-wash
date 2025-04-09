@@ -35,7 +35,7 @@ public class ModifierData {
     private int vendorId;
     private int siteId;
     private DailyData dailyData;
-    private int totalChargeAmount;//充值是当天的
+    private int totalChargeAmount;//当前感知车辆
     private int totalIncome;
     private int parentTotalIncome;
     private Map<Integer,AtomicInteger> DAY_INCOME_MAP=new TreeMap<>();

@@ -4,6 +4,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wash.cache.DateCache;
+import com.wash.config.VenCalculator;
 import com.wash.entity.*;
 import com.wash.entity.constants.DeliveryMethodType;
 import com.wash.entity.constants.FilesEnum;
@@ -43,6 +44,8 @@ public class Selecter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Selecter.class);
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
+    @Autowired
+    private VenCalculator venCalculator;
     @Autowired
     private Recorder recorder;
 
@@ -87,13 +90,13 @@ public class Selecter {
     public String select(TaskRecord taskRecord, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
 
         int inputVendorId = taskRecord.getVen();
-        //STEP0 获取vendor 场地
+        //STEP0 获取ven 车辆行驶路线
         List<FranchiseeSiteTb> franchiseeSiteTbs = getFranchiseeSiteTbs(inputVendorId);
         if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
         if(franchiseeTb.getWaitWithdraw()<2320*100){
-            return "无金额可用";
+            return "无路线可用";
         }
         //每个场地单独处理
         CountDownLatch countDownLatch = new CountDownLatch(franchiseeSiteTbs.size());
@@ -233,8 +236,6 @@ public class Selecter {
         allWriter.flush();
     }
 
-
-
     @Transactional(rollbackFor = Exception.class)
         // 所有异常均触发回滚
     ModifierData updateAndDel(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, DailyData dailyData,
@@ -272,7 +273,11 @@ public class Selecter {
         List<Series> originSeries = genOriginSeries(payTbList, franchiseeSiteTb);
 
         List<Series> seriesList = null;
-        DecData decData = calculateAmount(inputVendorId,size,payTbList, inputDecAmount);
+        DoubleSummaryStatistics stats = payTbList.stream()
+                .collect(Collectors.summarizingDouble(PayTb::getAmount));
+        double sum = stats.getSum();
+
+        DecData decData = venCalculator.calculateAmount(inputVendorId,sum, inputDecAmount);
 
         if(decData==null){
             return null;
@@ -373,57 +378,6 @@ public class Selecter {
 
     private List<Series> genOriginSeries(List<PayTb> payTbList, FranchiseeSiteTb franchiseeSiteTb) {
         return payTbList.stream().map(i -> new Series(i, franchiseeSiteTb)).collect(Collectors.toList());
-    }
-
-    //根据选定history 的计算额度
-    public DecData calculateAmount(int inputVendorId,int size, List<PayTb> payTbList, Integer inputDecAmount) {
-        DoubleSummaryStatistics stats = payTbList.stream()
-                .collect(Collectors.summarizingDouble(PayTb::getAmount));
-        double sum = stats.getSum();
-        double calAmount = 0;
-        int inc=1;
-        int incr=2;
-
-        if(inputVendorId==3191){
-            inc=-1;
-            incr=-1;
-        }
-        if(inputVendorId==3362||inputVendorId==3122||inputVendorId==3433){
-            inc=0;
-            incr=0;
-        }
-        double calSum = sum / 100;
-        if (calSum < 80) {
-            calAmount = sum / (5+inc);
-        } else if (calSum < 140) {
-            calAmount = sum / (6+inc);
-        } else if (calSum < 210) {
-            calAmount = sum / (7+inc);
-        } else if (calSum < 280) {
-            calAmount = sum / (8+inc);
-        } else if (calSum < 400) {
-            calAmount = sum / (9+incr);
-        } else if (calSum < 510) {
-            calAmount = sum / (10+incr);
-        } else if (calSum < 630) {
-            calAmount = sum / (11+incr);
-        } else if (calSum < 820) {
-            calAmount = sum / (12+incr);
-        } else if (calSum < 1080) {
-            calAmount = sum / (13+incr);
-        } else if (calSum < 1400) {
-            calAmount = sum /(14+incr);
-        } else if (calSum < 1800) {
-            calAmount = sum / (15+incr);
-        } else if (calSum < 2400) {
-            calAmount = sum / (16+incr);
-        } else if (calSum < 3200) {
-            calAmount = sum / (17+incr);
-        } else {
-            calAmount = sum / (18+incr);
-        }
-        int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
-        return new DecData(sum, decAmount, inputDecAmount != null);
     }
 
     private List<FranchiseeSiteTb> getFranchiseeSiteTbs(Integer inputVendorId) {

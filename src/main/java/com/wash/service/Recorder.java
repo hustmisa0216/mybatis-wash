@@ -125,32 +125,39 @@ public class Recorder {
 
     public void scheduleRecord(Map<Integer, TaskRecord> map) {
         AtomicInteger allcome = new AtomicInteger(0);
+        AtomicInteger allre = new AtomicInteger(0);
+        AtomicInteger allIn=new AtomicInteger(0);
         try {
             String path = FILE_PATH + "/"; // 替换为实际路径
             String date = SIMPLE_DATE_FORMAT.format(new Date());
             FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
             List<TaskRecord> taskRecordList=new ArrayList<>();
+
             for (int ven : map.keySet()) {
                 TaskRecord taskRecord = map.get(ven);
                 if (taskRecord != null && taskRecord.getSiteMap() != null) {
                     Map<Integer, AtomicInteger> siteMap = taskRecord.getSiteMap();
-                    int inputVendorId = taskRecord.getVen();
                     int dec = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
                     taskRecord.setDec(dec);
+                    taskRecord.setDate(Integer.parseInt(date));
                     allcome.addAndGet(dec);
                     if (dec > 0) {
                         taskRecordList.add(taskRecord);
                     }
-                    taskRecord.setPercent((int)((double)dec*100/taskRecord.getCurIn().get()));
+                    allIn.addAndGet(taskRecord.getCurIn().get());
+                    allre.addAndGet(taskRecord.getCurRe().get());
+                    // ... existing code ...
+                    double percent=Math.round((double) dec * 10000 / taskRecord.getCurIn().get()) / 100.0;
+                    taskRecord.setPercent(percent);
                 }
             }
-
-            taskRecordList.sort((a,b)->b.getPercent()-a.getPercent());
+            taskRecordList.sort((a,b)-> (int) (b.getPercent()*100-a.getPercent()*100));
             for(TaskRecord taskRecord:taskRecordList){
-                dateWriter.write(date + "," + taskRecord.getVen() + "," + taskRecord.getDec()+","+taskRecord.getCurRe()+"," +taskRecord.getCurIn()+ ","+taskRecord.getPercent()+"%\n");
+                dateWriter.write(taskRecord.genRecord()+"\n");
                 dateWriter.flush();
             }
-            dateWriter.write(date + "," + "all" + "," + allcome + "\n\n");
+            double allPer=Math.round((double) allcome.get() * 10000 / allre.get()) / 100.0;
+            dateWriter.write(date + "," + "all" + "," + allcome+","+allre.get()+","+allIn.get()+","+allPer + "%\n\n");
             dateWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
