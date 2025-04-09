@@ -18,8 +18,8 @@ public class TaskRecord {
     private int ven;
     Map<Integer, AtomicInteger> siteMap=new HashMap<>();
     private int date;
-    private AtomicInteger curRe;
-    private AtomicInteger curIn;
+    private AtomicInteger curRe=new AtomicInteger(0);
+    private AtomicInteger curIn=new AtomicInteger(0);
     private int dec;
     private int percent;
 

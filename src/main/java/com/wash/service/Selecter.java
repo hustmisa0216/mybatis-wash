@@ -189,8 +189,8 @@ public class Selecter {
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
-        totalIncome.addAndGet((int) Math.ceil(modifierData.getTotalIncome()));
-        paretnIncome.addAndGet((int) Math.ceil(modifierData.getParentTotalIncome()));
+        totalIncome.addAndGet((int) Math.ceil(modifierData.getTotalIncome()/100));
+        paretnIncome.addAndGet((int) Math.ceil(modifierData.getParentTotalIncome()/100));
         res.append(modifierData.getKey() + "||" + (int) Math.ceil(modifierData.getWaitWithDraw() / 100) + "-" + (int) Math.ceil(modifierData.getAfterWaitDraw() / 100) + "\n");
         countDownLatch.countDown();
     }
@@ -272,7 +272,7 @@ public class Selecter {
         List<Series> originSeries = genOriginSeries(payTbList, franchiseeSiteTb);
 
         List<Series> seriesList = null;
-        DecData decData = calculateAmount(size,payTbList, inputDecAmount);
+        DecData decData = calculateAmount(inputVendorId,size,payTbList, inputDecAmount);
 
         if(decData==null){
             return null;
@@ -376,13 +376,22 @@ public class Selecter {
     }
 
     //根据选定history 的计算额度
-    public DecData calculateAmount(int size, List<PayTb> payTbList, Integer inputDecAmount) {
+    public DecData calculateAmount(int inputVendorId,int size, List<PayTb> payTbList, Integer inputDecAmount) {
         DoubleSummaryStatistics stats = payTbList.stream()
                 .collect(Collectors.summarizingDouble(PayTb::getAmount));
         double sum = stats.getSum();
         double calAmount = 0;
         int inc=1;
         int incr=2;
+
+        if(inputVendorId==3191){
+            inc=-1;
+            incr=-1;
+        }
+        if(inputVendorId==3362||inputVendorId==3122||inputVendorId==3433){
+            inc=0;
+            incr=0;
+        }
         double calSum = sum / 100;
         if (calSum < 80) {
             calAmount = sum / (5+inc);

@@ -135,13 +135,13 @@ public class Recorder {
                 if (taskRecord != null && taskRecord.getSiteMap() != null) {
                     Map<Integer, AtomicInteger> siteMap = taskRecord.getSiteMap();
                     int inputVendorId = taskRecord.getVen();
-                    int income = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
-                    taskRecord.setDec(income);
-                    allcome.addAndGet(income);
-                    if (income > 0) {
+                    int dec = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
+                    taskRecord.setDec(dec);
+                    allcome.addAndGet(dec);
+                    if (dec > 0) {
                         taskRecordList.add(taskRecord);
                     }
-                    taskRecord.setPercent((int)((double)income*100/taskRecord.getCurIn().get()));
+                    taskRecord.setPercent((int)((double)dec*100/taskRecord.getCurIn().get()));
                 }
             }
 
@@ -150,7 +150,7 @@ public class Recorder {
                 dateWriter.write(date + "," + taskRecord.getVen() + "," + taskRecord.getDec()+","+taskRecord.getCurRe()+"," +taskRecord.getCurIn()+ ","+taskRecord.getPercent()+"%\n");
                 dateWriter.flush();
             }
-            dateWriter.write(date + "," + "all" + "," + allcome + "\n");
+            dateWriter.write(date + "," + "all" + "," + allcome + "\n\n");
             dateWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
