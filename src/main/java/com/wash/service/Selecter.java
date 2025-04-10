@@ -9,12 +9,14 @@ import com.wash.entity.*;
 import com.wash.entity.constants.DeliveryMethodType;
 import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.*;
+import com.wash.entity.franchisee.FaWithdrawTb;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.franchisee.FranchiseeTb;
 import com.wash.entity.statistics.DailyPaperTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.entity.statistics.SiteLatestDataTb;
 import com.wash.mapper.*;
+import com.wash.service.calculator.DrawCalculator;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -84,8 +86,12 @@ public class Selecter {
     @Autowired
     private FranchiseeTbMapper franchiseeTbMapper;
 
+
+
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
+    @Autowired
+    private DrawCalculator     drawCalculator;
 
     public String select(TaskRecord taskRecord, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
 
@@ -95,6 +101,11 @@ public class Selecter {
         if (CollectionUtils.isEmpty(franchiseeSiteTbs)) return "未获取到当前franchise";
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
+
+
+        drawCalculator.drawCalculate(inputVendorId,franchiseeSiteTbs);
+
+
         if(franchiseeTb.getWaitWithdraw()<2320*100){
             return "无路线可用";
         }
@@ -123,6 +134,8 @@ public class Selecter {
         dateCache.reload();
         return res.toString();
     }
+
+
 
     private void handleByFsite(int size, Integer inputVendorId, Integer inputSiteId, Integer inputDate, Integer inputDecAmount, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb,
                                CountDownLatch countDownLatch, AtomicInteger totalIncome, AtomicInteger paretnIncome, TaskRecord taskRecord) throws Throwable {
