@@ -279,7 +279,12 @@ public class Selecter {
 
         DecData decData = venCalculator.calculateAmount(inputVendorId,sum, inputDecAmount);
 
+
         if(decData==null){
+            return null;
+        }
+        if(decData.getDecAmount()*3>sum){
+
             return null;
         }
         if (CollectionUtils.isEmpty(payTbList)) {

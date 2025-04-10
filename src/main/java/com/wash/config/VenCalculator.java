@@ -145,15 +145,15 @@ public class VenCalculator {
 
 
         if(set1.contains(ven)){
-            return 1;
-        }else if(set2.contains(ven)){
             return 2;
-        }else if(set3.contains(ven)){
+        }else if(set2.contains(ven)){
             return 3;
+        }else if(set3.contains(ven)){
+            return 4;
         }else if(set4.contains(ven)){
             return 4;
         }
-        return 3;//默认类别3
+        return 4;//默认类别3
 
     }
 
