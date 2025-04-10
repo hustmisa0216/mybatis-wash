@@ -91,7 +91,7 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
     @Autowired
-    private DrawCalculator     drawCalculator;
+    private DrawCalculator   drawCalculator;
 
     public String select(TaskRecord taskRecord, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
 
@@ -102,10 +102,15 @@ public class Selecter {
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
 
+        boolean valid =drawCalculator.drawCalculate(inputVendorId,franchiseeTb,franchiseeSiteTbs);
 
-        drawCalculator.drawCalculate(inputVendorId,franchiseeSiteTbs);
-
-
+        if(!valid){
+            return "rest too little";
+        }
+//        String v="a";
+//        if(StringUtils.equals(v,"a")){
+//            return "aaaaaaaaaaaaaaaaaaaa";
+//        }
         if(franchiseeTb.getWaitWithdraw()<2320*100){
             return "无路线可用";
         }
