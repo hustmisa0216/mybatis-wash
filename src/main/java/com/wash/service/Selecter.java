@@ -105,7 +105,8 @@ public class Selecter {
         boolean valid =drawCalculator.drawCalculate(inputVendorId,franchiseeTb,franchiseeSiteTbs);
 
         if(!valid){
-            return "rest too little";
+            res.append(franchiseeTb.getId() +  + "-" + "rest lesssssss\n");
+            return res.toString();
         }
 //        String v="a";
 //        if(StringUtils.equals(v,"a")){

@@ -46,6 +46,10 @@ public class DrawCalculator {
 
         // 创建 Calendar 实例并设置时间
         Calendar calendar = Calendar.getInstance();
+        int diff= (int) ((System.currentTimeMillis()/1000-lastTime)/(24*60*60));
+        if(diff<3&&franchiseeTb.getWaitWithdraw()<7000*100){
+            return false;
+        }
         calendar.setTimeInMillis(lastTime*1000);
 
         // 获取当前日期
@@ -58,29 +62,30 @@ public class DrawCalculator {
         calendar.add(Calendar.DAY_OF_MONTH, -1);//当月最后一天
         int lastDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 
-        if(currentDay>lastDayOfMonth-3){
+        if(currentDay>lastDayOfMonth-3&&(System.currentTimeMillis()-lastTime*1000)<24*60*60*1000*30){
             return false;
         }
 
         QueryWrapper<FaSettlementTb> faSettlementTbQueryWrapper = new QueryWrapper<>();
-        faSettlementTbQueryWrapper.in("own_id", inputVendorId);
+        faSettlementTbQueryWrapper.eq("own_id", inputVendorId);
         faSettlementTbQueryWrapper.ge("created_at", lastTime);
         faSettlementTbQueryWrapper.select("SUM(earnings) as vipMoney");
 
         List<Map<String, Object>> resultList = faSettlementTbMapper.selectMaps(faSettlementTbQueryWrapper);
+        if(resultList==null){
+            return true;
+        }
         Map<String, Object> resultMap = resultList.get(0);
+        if(resultMap==null){
+            return true;
+        }
         double vipM = resultMap.get("vipMoney") != null ? Double.parseDouble(resultMap.get("vipMoney").toString()) : 0;
         double rest=franchiseeTb.getWaitWithdraw()-vipM;//余下的车
 
-        if(rest<2120*100){
+        if(franchiseeTb.getWaitWithdraw()<5000*1000&&rest<1350*100){
              return false;
         }
-
-
-
         return true;
-
-
     }
 
 }
