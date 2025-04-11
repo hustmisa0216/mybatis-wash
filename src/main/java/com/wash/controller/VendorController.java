@@ -44,6 +44,7 @@ public class VendorController {
         String result = String.format("Vendor ID: %d, Dec Amount: %d, Site ID: %d, Date: %d",
                 inputVendorId, inputDecAmount, inputSiteId, inputDate);
 
+        LOGGER.info("Received request: {}", result);
         if (inputVendorId == null || (inputDecAmount != null && inputDecAmount.intValue() > 30000)) {
             return ResponseEntity.ok("请确认输入参数：" + result);
         }

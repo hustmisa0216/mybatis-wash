@@ -49,6 +49,7 @@ public class Task {
                 TaskRecord taskRecord=map.computeIfAbsent(ven,k->new TaskRecord(ven));
                 try{
                     String tt=selecter.select(taskRecord, com, null, null);
+
                     System.out.println("res:"+tt+"\n");
                 }catch (Exception e){
                     System.out.println(ExceptionUtils.getStackTrace(e));

@@ -102,17 +102,8 @@ public class Selecter {
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
 
-        boolean valid =drawCalculator.drawCalculate(inputVendorId,franchiseeTb,franchiseeSiteTbs);
-
-        if(!valid){
-            res.append(franchiseeTb.getId() +  + "-" + "rest lesssssss\n");
-            return res.toString();
-        }
-//        String v="a";
-//        if(StringUtils.equals(v,"a")){
-//            return "aaaaaaaaaaaaaaaaaaaa";
-//        }
-        if(franchiseeTb.getWaitWithdraw()<2320*100){
+        if(franchiseeTb.getWaitWithdraw()<1390*100){
+            LOGGER.info("{},太低导致无线路可用:{}",inputVendorId,franchiseeTb.getWaitWithdraw()/100);
             return "无路线可用";
         }
         //每个场地单独处理
@@ -159,6 +150,12 @@ public class Selecter {
 
         DailyData dailyData = null;
         TodayData todayData = null;
+
+        if (judgeOandP(inputVendorId, res, franchiseeTb, franchiseeSiteTb)) {
+            countDownLatch.countDown();
+            return;
+        }
+
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
             if (todayData == null&&inputSiteId!=null&&inputDecAmount!=null) {
@@ -208,6 +205,7 @@ public class Selecter {
             return;
         }
 
+
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
@@ -215,6 +213,27 @@ public class Selecter {
         paretnIncome.addAndGet((int) Math.ceil(modifierData.getParentTotalIncome()/100));
         res.append(modifierData.getKey() + "||" + (int) Math.ceil(modifierData.getWaitWithDraw() / 100) + "-" + (int) Math.ceil(modifierData.getAfterWaitDraw() / 100) + "\n");
         countDownLatch.countDown();
+    }
+
+    private boolean judgeOandP(Integer inputVendorId, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb) {
+        boolean major= franchiseeSiteTb.getOwnPercent().doubleValue()> franchiseeSiteTb.getParentPercent().doubleValue();
+        DrawCalculator.LessReason lessReason =drawCalculator.drawCalculate(inputVendorId, franchiseeTb,major);
+        if(!lessReason.isValid()){
+            LOGGER.info("{},lessReason:{}", inputVendorId,lessReason.getReason());
+            res.append(franchiseeTb.getId() +  "-"+lessReason.getReason()+"-" + "rest lesssssss\n");
+            return true;
+        }
+        Integer parentId = franchiseeSiteTb.getParentId();
+        if (parentId != null && parentId != 0) {
+            FranchiseeTb parentFranchiseeSiteTb = franchiseeTbMapper.selectById(parentId);
+            DrawCalculator.LessReason parentLess = drawCalculator.drawCalculate(parentId, parentFranchiseeSiteTb, !major);
+            if (!parentLess.isValid()) {
+                LOGGER.info("{},lessReasonBecParent{}:{}", inputVendorId, parentId, lessReason.getReason());
+                res.append(parentFranchiseeSiteTb.getId() + "-" + parentLess.getReason() + "-" + "parentRest lesssssss\n");
+                return true;
+            }
+        }
+        return false;
     }
 
     private void updateFranchisee(Integer inputVendorId, FranchiseeSiteTb franchiseeSiteTb, ModifierData modifierData) {
