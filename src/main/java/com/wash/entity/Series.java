@@ -20,6 +20,8 @@ public class Series {
     private List<OrdersTb> ordersTbs=new ArrayList<>();
     private List<VendorProfitSharingTb> vendorProfitSharingTbs=new ArrayList<>();
     private List<VendorProfitSharingTb> parentVendorProfitSharingTbs=new ArrayList<>();
+
+    private int parentVen=-1;
     private FranchiseeSiteTb franchiseeSiteTb;
     private List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs=new ArrayList<>();
     public Series(PayTb payTb,FranchiseeSiteTb franchiseeSiteTb) {

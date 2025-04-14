@@ -162,12 +162,13 @@ public class Modifier {
                     .setSql("earnings=earnings-" + income);
             faSettlementTbMapper.update(null, faSettlementTbUpdateWrapper);
         }
+
         if (modifierData.getParentTotalIncome() > 0) {
             for (int date : modifierData.getPARENT_DAY_INCOME_MAP().keySet()) {
                 UpdateWrapper<FaSettlementTb> parentWrapper = new UpdateWrapper<>();
                 int parentIncome = modifierData.getPARENT_DAY_INCOME_MAP().getOrDefault(date, new AtomicInteger(0)).get();
                 parentWrapper
-                        .eq("own_id", franchiseeSiteTb.getParentId())
+                        .eq("own_id", modifierData.getParentId())
                         .eq("date", date)
                         .eq("site_id", faSettlementTbRes.getSiteId())
                         .setSql("earnings=earnings-" + parentIncome);

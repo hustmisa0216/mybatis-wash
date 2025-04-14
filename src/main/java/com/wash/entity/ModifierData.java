@@ -59,6 +59,8 @@ public class ModifierData {
     private int waitWithDraw;
     private int afterWaitDraw;
 
+    private int parentId=-1;
+
     public ModifierData(DailyData dailyData, List<Series> seriesList, int date, int siteId, int vendorId,int waitWithDraw){
         this.dailyData=dailyData;
         this.seriesList=seriesList;
@@ -74,6 +76,9 @@ public class ModifierData {
         curDate=Integer.valueOf(localCurDate.format(formatter));
         curMonth=Integer.valueOf((""+curDate).substring(0,6));
         selectMonth=Integer.valueOf((selectDates).substring(0,6));
+        if(seriesList.get(0).getParentVen()!=-1){
+            this.setParentId(seriesList.get(0).getParentVen());
+        }
         for(Series series:seriesList){
             totalChargeAmount+=series.getPayTb().getAmount();
             payCount+=1;

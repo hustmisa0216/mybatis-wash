@@ -9,7 +9,6 @@ import com.wash.entity.*;
 import com.wash.entity.constants.DeliveryMethodType;
 import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.*;
-import com.wash.entity.franchisee.FaWithdrawTb;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.franchisee.FranchiseeTb;
 import com.wash.entity.statistics.DailyPaperTb;
@@ -148,13 +147,8 @@ public class Selecter {
             }
         }
 
-        DailyData dailyData = null;
         TodayData todayData = null;
-
-        if (judgeOandP(inputVendorId, res, franchiseeTb, franchiseeSiteTb)) {
-            countDownLatch.countDown();
-            return;
-        }
+        List<DailyData> dailyDatas = new ArrayList<>();
 
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
@@ -168,14 +162,14 @@ public class Selecter {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
                     int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + 2*lastDayEar) / 3);
                     double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
-                    dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
+                    dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
             } else {
                 if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 11400 || lastDayEar > 8200)) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
                     int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + lastDayEar) / 2);
                     double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
-                    dailyData = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
+                    dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
             }
         } else {
@@ -186,11 +180,12 @@ public class Selecter {
             } else {
                 FaSettlementTb faSettlementTbRes = getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), inputDate);
                 DailyPaperTb dailyPaperTb = getDailyDataTb(inputVendorId, franchiseeSiteTb.getSiteId(), inputDate);
-                dailyData = new DailyData(dailyPaperTb, faSettlementTbRes);
+                DailyData  dailyData = new DailyData(dailyPaperTb, faSettlementTbRes);
+                dailyDatas.add(dailyData);
             }
         }
 
-        if (dailyData == null || dailyData.getFaSettlementTb() == null) {
+        if (CollectionUtils.isEmpty(dailyDatas)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + "未找到合适日期\n");
             countDownLatch.countDown();
             return;
@@ -198,24 +193,55 @@ public class Selecter {
         taskRecord.getCurRe().addAndGet(todayData.getSiteLatestDataTb().getRechargeAmount()/100);
         taskRecord.getCurIn().addAndGet(todayData.getLastDayEar()/100);
 
-        List<Series> resSeries = buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
+        DailyData curDailyData =null;
+        List<Series> resSeries=new ArrayList<>();
+        for(DailyData dailyData:dailyDatas){
+            resSeries=  buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
+            if(CollectionUtils.isNotEmpty(resSeries)){
+                curDailyData=dailyData;
+                break;
+            }
+        }
+
         if (CollectionUtils.isEmpty(resSeries)) {
-            res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + dailyData.getFaSettlementTb().getDate() + "-未获取到任何条目\n");
+            res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + curDailyData.getFaSettlementTb().getDate() + "-未获取到任何条目\n");
             countDownLatch.countDown();
             return;
         }
 
+        if (judgeOandPLess(inputVendorId, res, franchiseeTb, franchiseeSiteTb,resSeries)){
+            countDownLatch.countDown();
+            return;
+        }
 
-        ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, dailyData, resSeries, franchiseeTb);
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+
+        System.out.println("aaaaaaa");
+        System.out.println("aaaaaaa");
+
+        Thread.sleep(100000000);
+
+
+
+
+        ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, curDailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
-        record(inputVendorId, franchiseeSiteTb, modifierData, dailyData);
+        record(inputVendorId, franchiseeSiteTb, modifierData, curDailyData);
         totalIncome.addAndGet((int) Math.ceil(modifierData.getTotalIncome()/100));
         paretnIncome.addAndGet((int) Math.ceil(modifierData.getParentTotalIncome()/100));
         res.append(modifierData.getKey() + "||" + (int) Math.ceil(modifierData.getWaitWithDraw() / 100) + "-" + (int) Math.ceil(modifierData.getAfterWaitDraw() / 100) + "\n");
         countDownLatch.countDown();
     }
 
-    private boolean judgeOandP(Integer inputVendorId, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb) {
+    private boolean judgeOandPLess(Integer inputVendorId, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) {
         boolean major= franchiseeSiteTb.getOwnPercent().doubleValue()> franchiseeSiteTb.getParentPercent().doubleValue();
         DrawCalculator.LessReason lessReason =drawCalculator.drawCalculate(inputVendorId, franchiseeTb,major);
         if(!lessReason.isValid()){
@@ -223,8 +249,16 @@ public class Selecter {
             res.append(franchiseeTb.getId() +  "-"+lessReason.getReason()+"-" + "rest lesssssss\n");
             return true;
         }
-        Integer parentId = franchiseeSiteTb.getParentId();
-        if (parentId != null && parentId != 0) {
+
+
+        //这个应该是融合当时的车，而不是当前保存的(中途变化过)
+        int parentId =resSeries.get(0).getParentVen();
+        if(parentId!=-1){
+            boolean allSame=resSeries.stream().allMatch(i->i.getParentVen()==parentId);
+            if(!allSame){
+                LOGGER.info("{},lessReasonNotSame:{},{}", inputVendorId,parentId,resSeries);
+                return true;
+            }
             FranchiseeTb parentFranchiseeSiteTb = franchiseeTbMapper.selectById(parentId);
             DrawCalculator.LessReason parentLess = drawCalculator.drawCalculate(parentId, parentFranchiseeSiteTb, !major);
             if (!parentLess.isValid()) {
@@ -247,7 +281,7 @@ public class Selecter {
 
         if (modifierData.getParentTotalIncome() > 0) {
             UpdateWrapper<FranchiseeTb> franchiseeTbUpdateWrapperParent = new UpdateWrapper<>();
-            franchiseeTbUpdateWrapperParent.eq("id", franchiseeSiteTb.getParentId())
+            franchiseeTbUpdateWrapperParent.eq("id", modifierData.getParentId())
                     .setSql("settled_amount = settled_amount-" + modifierData.getParentTotalIncome())
                     .setSql("wait_withdraw = wait_withdraw-" + modifierData.getParentTotalIncome())
                     .setSql("stmt_recharge_amount = stmt_recharge_amount-" + modifierData.getTotalChargeAmount())
@@ -328,13 +362,16 @@ public class Selecter {
         if (CollectionUtils.isEmpty(payTbList)) {
             return null;
         }
-        if ((decData.getSum() > 100000 || payTbList.size() > 15) && inputVendorId.intValue() != 3287) {
-            List<Series> list = filterSeriesByAmount(originSeries, decData);
-            seriesList = collectSeries(list, franchiseeSiteTb, inputVendorId, inputDecAmount);
-        } else {
-            List<Series> list = collectSeries(originSeries, franchiseeSiteTb, inputVendorId, inputDecAmount);
-            seriesList = filterSeriesByAmount(list, decData);
+//        if ((decData.getSum() > 100000 || payTbList.size() > 15) && inputVendorId.intValue() != 3287) {
+//            List<Series> list = filterSeriesByAmount(originSeries, decData);
+//            seriesList = collectSeries(list, franchiseeSiteTb, inputVendorId, inputDecAmount);
+//        } else {
+        List<Series> list = collectSeries(originSeries, franchiseeSiteTb, inputVendorId, inputDecAmount);
+        if(CollectionUtils.isEmpty(list)&&sum>120*100){
+           LOGGER.info("未收集到：{},{},{},{},{}",inputVendorId,franchiseeSiteTb.getSiteId(),faSettlementTb.getDate(),decData.getDecAmount(),decData.getSum());
         }
+        seriesList = filterSeriesByAmount(list, decData);
+
         return seriesList;
     }
 
@@ -449,13 +486,30 @@ public class Selecter {
         return payTbList;
     }
 
-    private DailyData selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, double siteSum, Integer inputVendorId, Integer inputDecAmount) throws ParseException {
+    private List<DailyData> selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, double siteSum, Integer inputVendorId, Integer inputDecAmount) throws ParseException {
         QueryWrapper<DailyPaperTb> dailyPaperTbQueryWrapper = new QueryWrapper();
+        List<DailyData> dailyDatas=new ArrayList<>();
         long lastDateTime = (System.currentTimeMillis() / 1000) - 25 * 24 * 60 * 60;
         int lastDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(lastDateTime * 1000)));
         int dayBefore=inputVendorId.intValue()==3191?320:540;
         long firstTime = System.currentTimeMillis() / 1000 - dayBefore * 24 * 60 * 60;
         int firstDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(firstTime * 1000)));
+
+//        if(franchiseeSiteTb.getParentPercent().doubleValue()>0){
+//            int parent=franchiseeSiteTb.getParentId();
+//            QueryWrapper<FaSettlementTb> faSettlementTbQueryWrapper = new QueryWrapper();
+//            faSettlementTbQueryWrapper.eq("site_id", franchiseeSiteTb.getSiteId())
+//                    .eq("own_id",parent);
+//            List<FaSettlementTb> faSettlementTbs=faSettlementTbMapper.selectList(faSettlementTbQueryWrapper);
+//            if(CollectionUtils.isNotEmpty(faSettlementTbs)){
+//                faSettlementTbs.sort(Comparator.comparingInt(FaSettlementTb::getDate));
+//                FaSettlementTb faSettlementTb=faSettlementTbs.get(0);
+//                int date=faSettlementTb.getDate();
+//                if(date>=firstDate){
+//                    firstDate=date;
+//                }
+//            }
+//        }
 
         dailyPaperTbQueryWrapper
                 .eq("site_id", franchiseeSiteTb.getSiteId())
@@ -465,7 +519,7 @@ public class Selecter {
         if (temp == null || temp.size() < 5) {
             return null;
         }
-        if (inputDecAmount == null && siteSum < 9800) {//低于这个就没必要了
+        if (inputDecAmount == null && siteSum < 7800) {//低于这个就没必要了
             return null;
         }
         int maxDiff= 3800;
@@ -483,13 +537,16 @@ public class Selecter {
         for (DailyPaperTb dailyPaperTb : temp) {
             if (!judgeExists(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate())) {
                 if (dailyPaperTb.getRechargeCount() > 2) {
-                    if (Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum) < maxDiff) {
+                    double diff=Math.abs(dailyPaperTb.getVendorRechargeAmount() - siteSum);
+                    if (diff < maxDiff) {
                         FaSettlementTb faSettlementTb = getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate());
                         if (faSettlementTb != null)
-                            return new DailyData(dailyPaperTb,
-                                    getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), dailyPaperTb.getDate()));
+                            dailyDatas.add(new DailyData(dailyPaperTb,faSettlementTb));
                     }
                 }
+            }
+            if(dailyDatas.size()>2){
+                return dailyDatas;
             }
         }
 
@@ -506,8 +563,12 @@ public class Selecter {
 
             }
         }
-        if (res == null) return null;
-        return new DailyData(res, getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), res.getDate()));
+        if(res==null){
+            return dailyDatas;
+        }
+
+        dailyDatas.add(new DailyData(res, getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), res.getDate())));
+        return dailyDatas;
     }
 
     public boolean judgeExists(int inputVendorId, int siteId, int date) {
@@ -598,7 +659,6 @@ public class Selecter {
                 return;
             }
 
-
             QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
             commodityOrderProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
                     .eq("order_id", commodityOrderTb.getOrderId());
@@ -610,7 +670,7 @@ public class Selecter {
             commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
             series.setCommodityOrderProfitSharingTbs(commodityOrderProfitSharingTbs);
             DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
-            if (!filleVpf(franchiseeSiteTb, inputVendorId, series, payTb, commodityOrderProfitSharingTbs)) {
+            if (!filleVpf(inputVendorId, series, payTb, commodityOrderProfitSharingTbs)) {
                 countDownLatch.countDown();
                 return;
             }
@@ -700,11 +760,10 @@ public class Selecter {
         return commodityOrderTb;
     }
 
-    private boolean filleVpf(FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, Series series, PayTb payTb, List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs) {
+    private boolean filleVpf( Integer inputVendorId, Series series, PayTb payTb, List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs) {
         QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper<>();
         vendorProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
                 .eq("type", 1)
-                .eq("vendor_id", inputVendorId)
                 .in("transaction_id", commodityOrderProfitSharingTbs.stream().map(i -> i.getTransactionId()).collect(Collectors.toList()));
 
         List<VendorProfitSharingTb> vendorProfitSharingTbs = vendorProfitSharingTbMapper.selectList(vendorProfitSharingTbQueryWrapper);
@@ -712,19 +771,14 @@ public class Selecter {
             return false;
         }
         vendorProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
+        List<VendorProfitSharingTb> owns=vendorProfitSharingTbs.stream().filter(i->i.getVendorId()==inputVendorId).collect(Collectors.toList());
+        List<VendorProfitSharingTb> parents=vendorProfitSharingTbs.stream().filter(i->i.getVendorId()!=inputVendorId).collect(Collectors.toList());
         series.setVendorProfitSharingTbs(vendorProfitSharingTbs);
 
-        if (franchiseeSiteTb.getParentId() != null && franchiseeSiteTb.getParentId() > 0 && franchiseeSiteTb.getParentPercent().doubleValue() > 0) {
-            QueryWrapper<VendorProfitSharingTb> parentVendorProfitSharingTbQueryWrapper = new QueryWrapper<>();
-            parentVendorProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
-                    .eq("type", 1)
-                    .eq("vendor_id", franchiseeSiteTb.getParentId())
-                    .in("transaction_id", commodityOrderProfitSharingTbs.stream().map(i -> i.getTransactionId()).collect(Collectors.toList()));
-            List<VendorProfitSharingTb> parentVendorPtbs = vendorProfitSharingTbMapper.selectList(parentVendorProfitSharingTbQueryWrapper);
-            parentVendorPtbs.stream().forEach(i -> dateGenerator.generateDate(i));
-            series.setParentVendorProfitSharingTbs(parentVendorPtbs);
+        if(CollectionUtils.isNotEmpty(parents)) {
+            series.setParentVendorProfitSharingTbs(parents);
+            series.setParentVen(parents.get(0).getVendorId());
         }
-
         return true;//填充成功
     }
 
