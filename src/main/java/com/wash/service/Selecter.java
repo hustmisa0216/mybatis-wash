@@ -158,7 +158,7 @@ public class Selecter {
 
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
-            if (todayData == null&&inputSiteId!=null&&inputDecAmount!=null) {
+            if (todayData == null) {
                 countDownLatch.countDown();
                 return;
             }
