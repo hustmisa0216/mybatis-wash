@@ -162,6 +162,8 @@ public class Selecter {
                 countDownLatch.countDown();
                 return;
             }
+            taskRecord.getCurRe().addAndGet(todayData.getSiteLatestDataTb().getRechargeAmount()/100);
+            taskRecord.getCurIn().addAndGet(todayData.getLastDayEar()/100);
             double lastDayEar = todayData.getLastDayEar();
             if (size > 2) {
                 if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 9600||lastDayEar<0) {
@@ -195,9 +197,6 @@ public class Selecter {
             countDownLatch.countDown();
             return;
         }
-        taskRecord.getCurRe().addAndGet(todayData.getSiteLatestDataTb().getRechargeAmount()/100);
-        taskRecord.getCurIn().addAndGet(todayData.getLastDayEar()/100);
-
         List<Series> resSeries = buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
         if (CollectionUtils.isEmpty(resSeries)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + dailyData.getFaSettlementTb().getDate() + "-未获取到任何条目\n");
@@ -537,7 +536,7 @@ public class Selecter {
         calendar.setTimeInMillis(time);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         String sDate = "";
-        if (hour < 6) {
+        if (hour < 8) {
             sDate = SIMPLE_DATE_FORMAT.format(new Date(time - 24 * 60 * 60 * 1000));//如果是凌晨需要取前一天的日期
         } else {
             sDate = SIMPLE_DATE_FORMAT.format(new Date(time));
