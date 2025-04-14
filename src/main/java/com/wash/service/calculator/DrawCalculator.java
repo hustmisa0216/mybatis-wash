@@ -12,6 +12,7 @@ import com.wash.mapper.FaWithdrawTbMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,15 @@ public class DrawCalculator {
         List<FaWithdrawTb> faWithdrawTbs = faWithdrawTbMapper.selectList(faWithdrawTbQueryWrapper);
         faWithdrawTbs.sort((a,c)->(int)(c.getCreatedAt()-a.getCreatedAt()));
 
+        if(CollectionUtils.isEmpty(faWithdrawTbs)){
+            if(major){
+               return new LessReason("未提过车",false);
+            }else{
+                return new LessReason("",true);
+            }
+        }
         FaWithdrawTb faWithdrawTb = faWithdrawTbs.get(0);// 取最近的一次提车
+
         long lastTime = faWithdrawTb.getCreatedAt();
         long lastUpdateTime = faWithdrawTb.getUpdatedAt();
 
