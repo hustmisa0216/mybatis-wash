@@ -15,13 +15,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Data
 public class TaskRecord {
 
-    private int ven;
+    private int ven=0;
     Map<Integer, AtomicInteger> siteMap=new HashMap<>();
-    private int date;
+    private int date=0;
     private AtomicInteger curRe=new AtomicInteger(0);
     private AtomicInteger curIn=new AtomicInteger(0);
-    private int dec;
-    private double percent;
+    private int dec=0;
+    private double percent=0;
 
     public TaskRecord(int ven){
       this.ven=ven;

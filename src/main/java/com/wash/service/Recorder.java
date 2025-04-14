@@ -135,26 +135,27 @@ public class Recorder {
 
             for (int ven : map.keySet()) {
                 TaskRecord taskRecord = map.get(ven);
+                int dec=0;
                 if (taskRecord != null && taskRecord.getSiteMap() != null) {
                     Map<Integer, AtomicInteger> siteMap = taskRecord.getSiteMap();
-                    int dec = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
+                     dec = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
                     taskRecord.setDec(dec);
-                    taskRecord.setDate(Integer.parseInt(date));
                     allcome.addAndGet(dec);
-                    if (dec > 0) {
-                        taskRecordList.add(taskRecord);
-                    }
-                    allIn.addAndGet(taskRecord.getCurIn().get());
-                    allre.addAndGet(taskRecord.getCurRe().get());
-                    // ... existing code ...
-                    double percent=Math.round((double) dec * 10000 / taskRecord.getCurIn().get()) / 100.0;
-                    taskRecord.setPercent(percent);
                 }
+                taskRecord.setDate(Integer.parseInt(date));
+                taskRecordList.add(taskRecord);
+                allIn.addAndGet(taskRecord.getCurIn().get());
+                allre.addAndGet(taskRecord.getCurRe().get());
+                double percent=Math.round((double) dec * 10000 / taskRecord.getCurIn().get()) / 100.0;
+                taskRecord.setPercent(percent);
             }
             taskRecordList.sort((a,b)-> (int) (b.getPercent()*100-a.getPercent()*100));
+
             for(TaskRecord taskRecord:taskRecordList){
+                if(taskRecord.getCurIn().get()+taskRecord.getCurRe().get()>10){
                 dateWriter.write(taskRecord.genRecord()+"\n");
                 dateWriter.flush();
+                }
             }
             double allPer=Math.round((double) allcome.get() * 10000 / allre.get()) / 100.0;
             dateWriter.write(date + "," + "all" + "," + allcome+","+allre.get()+","+allIn.get()+","+allPer + "%\n\n");
