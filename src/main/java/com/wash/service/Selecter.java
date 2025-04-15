@@ -120,7 +120,6 @@ public class Selecter {
                 }
             });
         }
-
         countDownLatch.await(30, TimeUnit.SECONDS);
         res.append("\n");
         res.append("总计:"+totalIncome.get()+"-"+paretnIncome.get());
@@ -164,6 +163,7 @@ public class Selecter {
                     double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
+
             } else {
                 if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 11400 || lastDayEar > 8200)) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
@@ -185,6 +185,7 @@ public class Selecter {
             }
         }
 
+
         if (CollectionUtils.isEmpty(dailyDatas)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + "未找到合适日期\n");
             countDownLatch.countDown();
@@ -196,7 +197,7 @@ public class Selecter {
         DailyData curDailyData =null;
         List<Series> resSeries=new ArrayList<>();
         for(DailyData dailyData:dailyDatas){
-            resSeries=  buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
+            resSeries =  buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
             if(CollectionUtils.isNotEmpty(resSeries)){
                 curDailyData=dailyData;
                 break;
@@ -217,14 +218,6 @@ public class Selecter {
         System.out.println("aaaaaaa");
         System.out.println("aaaaaaa");
 
-        System.out.println("aaaaaaa");
-        System.out.println("aaaaaaa");
-        System.out.println("aaaaaaa");
-        System.out.println("aaaaaaa");
-        System.out.println("aaaaaaa");
-        System.out.println("aaaaaaa");
-
-        System.out.println("aaaaaaa");
         System.out.println("aaaaaaa");
 
         Thread.sleep(100000000);
