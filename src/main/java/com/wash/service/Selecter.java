@@ -187,6 +187,7 @@ public class Selecter {
 
 
         if (CollectionUtils.isEmpty(dailyDatas)) {
+            LOGGER.info("{},{},{}", inputVendorId, franchiseeSiteTb.getSiteId(), "未找到合适日期");
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + "未找到合适日期\n");
             countDownLatch.countDown();
             return;
