@@ -215,6 +215,7 @@ public class Selecter {
             }
         }
 
+
         if (CollectionUtils.isEmpty(resSeries)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + curDailyData.getFaSettlementTb().getDate() + "-未获取到任何条目\n");
             countDownLatch.countDown();
@@ -763,9 +764,9 @@ public class Selecter {
             return false;
         }
         vendorProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
-        List<VendorProfitSharingTb> owns=vendorProfitSharingTbs.stream().filter(i->i.getVendorId()==inputVendorId).collect(Collectors.toList());
-        List<VendorProfitSharingTb> parents=vendorProfitSharingTbs.stream().filter(i->i.getVendorId()!=inputVendorId).collect(Collectors.toList());
-        series.setVendorProfitSharingTbs(vendorProfitSharingTbs);
+        List<VendorProfitSharingTb> owns=vendorProfitSharingTbs.stream().filter(i->i.getVendorId().intValue()==inputVendorId.intValue()).collect(Collectors.toList());
+        List<VendorProfitSharingTb> parents=vendorProfitSharingTbs.stream().filter(i->i.getVendorId().intValue()!=inputVendorId.intValue()).collect(Collectors.toList());
+        series.setVendorProfitSharingTbs(owns);
 
         if(CollectionUtils.isNotEmpty(parents)) {
             series.setParentVendorProfitSharingTbs(parents);

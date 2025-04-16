@@ -87,6 +87,7 @@ public class ModifierData {
                 totalIncome+=vendorProfitSharingTb.getAmount();
                 DAY_INCOME_MAP.computeIfAbsent(vendorProfitSharingTb.getDate(), k -> new AtomicInteger(0)).addAndGet(vendorProfitSharingTb.getAmount());
             }
+
             if(CollectionUtils.isNotEmpty(series.getParentVendorProfitSharingTbs())) {
                 for (VendorProfitSharingTb parentVendor : series.getParentVendorProfitSharingTbs()) {
                     parentTotalIncome+=parentVendor.getAmount();
