@@ -344,8 +344,6 @@ public class Selecter {
         double sum = stats.getSum();
 
         DecData decData = venCalculator.calculateAmount(inputVendorId,sum, inputDecAmount);
-
-
         if(decData==null){
             return null;
         }
