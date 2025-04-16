@@ -159,7 +159,17 @@ public class Selecter {
             if (size > 2) {
                 if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 9600||lastDayEar<0) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
-                    int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + 2*lastDayEar) / 3);
+                    int decMerge=0;
+                    if(lastDayEar<100){
+                        decMerge= (int) ((lastDayRecharge + 5*lastDayEar) / 6);
+                    }else if(lastDayEar>=100&&lastDayEar<200){
+                        decMerge= (int) ((lastDayRecharge + 4*lastDayEar) / 5);
+                    }else if(lastDayEar>=200&&lastDayEar<400){
+                        decMerge= (int) ((lastDayRecharge + 3*lastDayEar) / 4);
+                    }else {
+                        decMerge= (int) ((lastDayRecharge + 2*lastDayEar) / 3);
+                    }
+                    int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge:decMerge;
                     double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }

@@ -146,7 +146,7 @@ public class Recorder {
                 taskRecordList.add(taskRecord);
                 allIn.addAndGet(taskRecord.getCurIn().get());
                 allre.addAndGet(taskRecord.getCurRe().get());
-                double percent=Math.round((double) dec * 10000 / taskRecord.getCurIn().get()) / 100.0;
+                double percent=Math.round((double) dec * 10000 / taskRecord.getCurRe().get()) / 100.0;
                 taskRecord.setPercent(percent);
             }
             taskRecordList.sort((a,b)-> (int) (b.getPercent()*100-a.getPercent()*100));
@@ -158,7 +158,7 @@ public class Recorder {
                 }
             }
             double allPer=Math.round((double) allcome.get() * 10000 / allre.get()) / 100.0;
-            dateWriter.write(date + "," + "all" + "," + allcome+","+allre.get()+","+allIn.get()+","+allPer + "%\n\n");
+            dateWriter.write(date + "  ,  " + "all" + "  ,  " + allcome+"  ,  "+allre.get()+"  ,  "+allIn.get()+"  ,  "+allPer + "%\n\n");
             dateWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

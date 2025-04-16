@@ -28,10 +28,8 @@ public class TaskRecord {
     }
 
     public  String genRecord(){
-        return date + "," + ven + "," + dec+","+curRe.get()+"," +curIn.get()+ ","+percent+"%";
+        return date + "  ,  " + ven + "  ,  " + dec+"  ,  "+curRe.get()+"  ,  " +curIn.get()+ "  ,  "+percent+"%";
     }
-
-
 
 
 }
