@@ -226,16 +226,6 @@ public class Selecter {
             return;
         }
 
-        System.out.println("aaaaaaa");
-        System.out.println("aaaaaaa");
-
-        System.out.println("aaaaaaa");
-
-        Thread.sleep(100000000);
-
-
-
-
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, curDailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
         record(inputVendorId, franchiseeSiteTb, modifierData, curDailyData);

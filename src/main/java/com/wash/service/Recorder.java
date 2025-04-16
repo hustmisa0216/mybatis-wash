@@ -135,30 +135,30 @@ public class Recorder {
 
             for (int ven : map.keySet()) {
                 TaskRecord taskRecord = map.get(ven);
-                int dec=0;
+                taskRecord.setDate(Integer.parseInt(date));
+                int dec = 0;
                 if (taskRecord != null && taskRecord.getSiteMap() != null) {
                     Map<Integer, AtomicInteger> siteMap = taskRecord.getSiteMap();
-                     dec = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
+                    dec = siteMap.values().stream().mapToInt(AtomicInteger::get).sum();
                     taskRecord.setDec(dec);
                     allcome.addAndGet(dec);
                 }
-                taskRecord.setDate(Integer.parseInt(date));
-                taskRecordList.add(taskRecord);
                 allIn.addAndGet(taskRecord.getCurIn().get());
                 allre.addAndGet(taskRecord.getCurRe().get());
-                double percent=Math.round((double) dec * 10000 / taskRecord.getCurRe().get()) / 100.0;
+                double percent = Math.round((double) dec * 10000 / taskRecord.getCurRe().get()) / 100.0;
                 taskRecord.setPercent(percent);
+                taskRecordList.add(taskRecord);
             }
-            taskRecordList.sort((a,b)-> (int) (b.getPercent()*100-a.getPercent()*100));
+            taskRecordList.sort((a, b) -> (int) (b.getPercent() * 100 - a.getPercent() * 100));
 
-            for(TaskRecord taskRecord:taskRecordList){
-                if(taskRecord.getCurIn().get()+taskRecord.getCurRe().get()>10){
-                dateWriter.write(taskRecord.genRecord()+"\n");
-                dateWriter.flush();
+            for (TaskRecord taskRecord : taskRecordList) {
+                if (taskRecord.getCurIn().get() + taskRecord.getCurRe().get() > 10) {
+                    dateWriter.write(taskRecord.genRecord() + "\n");
+                    dateWriter.flush();
                 }
             }
-            double allPer=Math.round((double) allcome.get() * 10000 / allre.get()) / 100.0;
-            dateWriter.write(date + "  ,  " + "all" + "  ,  " + allcome+"  ,  "+allre.get()+"  ,  "+allIn.get()+"  ,  "+allPer + "%\n\n");
+            double allPer = Math.round((double) allcome.get() * 10000 / allre.get()) / 100.0;
+            dateWriter.write(date + "  ,  " + "all" + "  ,  " + allcome + "  ,  " + allre.get() + "  ,  " + allIn.get() + "  ,  " + allPer + "%\n\n");
             dateWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

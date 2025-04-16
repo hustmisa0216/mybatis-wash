@@ -135,11 +135,11 @@ public class VenCalculator {
                         "").split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3434,3325,3215,3117,3230,3248,3221,3392,3260," +
+        Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3325,3215,3117,3230,3248,3221,3392,3260," +
                         "3266,3231,3114,3351,3411,3188,3168,3310,3297,3313,3194,3083,8,3066").split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3422".split(","))
+        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3422,3434".split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
 

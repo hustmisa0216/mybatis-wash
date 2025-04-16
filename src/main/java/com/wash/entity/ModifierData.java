@@ -129,7 +129,6 @@ public class ModifierData {
         LocalDate startDate = LocalDate.of(Integer.valueOf(selectDate.substring(0,4)), Integer.valueOf(selectDate.substring(4,6)), Integer.valueOf(selectDate.substring(6,8)));
         LocalDate curDate=LocalDate.now();
 
-
         List<String> res=new ArrayList<>();
         while(!startDate.isAfter(curDate)){
             String date=startDate.format(formatter).substring(0,6);
