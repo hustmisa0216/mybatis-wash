@@ -2,6 +2,7 @@ package com.wash.controller;
 
 import com.wash.config.AllConfig;
 import com.wash.entity.TaskRecord;
+import com.wash.recover.RecoverByOneDay;
 import com.wash.service.Recorder;
 import com.wash.service.Selecter;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,8 @@ public class Task {
     private Selecter selecter;
 
     @Autowired
+    private RecoverByOneDay recover;
+    @Autowired
     private Recorder recorder;
 
         // ... existing code ...
@@ -43,6 +46,7 @@ public class Task {
             Collections.shuffle(v);
             Map<Integer, TaskRecord> map=new HashMap<>();
             for(String s:v){
+
                 String ss[]=s.split("\t");
                 int ven=Integer.valueOf(ss[0]);
                 int com=Integer.valueOf(ss[1]);
@@ -55,6 +59,7 @@ public class Task {
                 }
             }
             recorder.scheduleRecord(map);
+            recover.reco();
         }
 
 

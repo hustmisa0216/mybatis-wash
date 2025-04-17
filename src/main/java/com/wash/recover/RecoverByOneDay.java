@@ -23,11 +23,13 @@ public class RecoverByOneDay {
     @Autowired
     private FranchiseeTbMapper franchiseeTbMapper;
 
-    @PostConstruct
-    public static void reco() throws IOException {
+    public  void reco() throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(FILE_PATH + FilesEnum.SCH.getFileName()));
 
         for(String line:lines){
+            if(!line.contains("20250416")){
+                continue;
+            }
             String[] split = line.split(",");
             if(split.length<6){
                 continue;
@@ -36,7 +38,7 @@ public class RecoverByOneDay {
                 continue;
             }
             int ven=Integer.valueOf(split[1]);
-            int incom=Integer.valueOf(split[2])*50;
+            int incom=Integer.valueOf(split[2])*10;
             int date=Integer.valueOf(split[0]);
 
             if(date!=20250416){
@@ -49,9 +51,7 @@ public class RecoverByOneDay {
                     .setSql("wait_withdraw = wait_withdraw+" + incom)
                     .setSql("stmt_recharge_amount = stmt_recharge_amount+" +incom)
                     .setSql("stmt_profit_amount = stmt_profit_amount+" + incom);
-            //franchiseeTbMapper.update(null, franchiseeTbUpdateWrapper);
-
-
+            franchiseeTbMapper.update(null, franchiseeTbUpdateWrapper);
         }
 
     }
