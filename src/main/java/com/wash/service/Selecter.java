@@ -1,5 +1,6 @@
 package com.wash.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -195,7 +196,6 @@ public class Selecter {
             }
         }
 
-
         if (CollectionUtils.isEmpty(dailyDatas)) {
             LOGGER.info("{},{},{}", inputVendorId, franchiseeSiteTb.getSiteId(), "未找到合适日期");
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + "未找到合适日期\n");
@@ -215,9 +215,8 @@ public class Selecter {
             }
         }
 
-
         if (CollectionUtils.isEmpty(resSeries)) {
-            res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + curDailyData.getFaSettlementTb().getDate() + "-未获取到任何条目\n");
+            res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + JSON.toJSONString(dailyDatas) + "-未获取到任何条目\n");
             countDownLatch.countDown();
             return;
         }
