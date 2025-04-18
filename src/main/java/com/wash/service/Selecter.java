@@ -239,7 +239,7 @@ public class Selecter {
         boolean major= franchiseeSiteTb.getOwnPercent().doubleValue()> franchiseeSiteTb.getParentPercent().doubleValue();
         DrawCalculator.LessReason lessReason =drawCalculator.drawCalculate(inputVendorId, franchiseeTb,major);
         if(!lessReason.isValid()){
-            LOGGER.info("{},lessReason:{}", inputVendorId,lessReason.getReason());
+            LOGGER.info("{},{},lessReason:{}", inputVendorId,franchiseeSiteTb.getSiteId(),lessReason.getReason());
             res.append(franchiseeTb.getId() +  "-"+lessReason.getReason()+"-" + "rest lesssssss\n");
             return true;
         }
@@ -250,13 +250,13 @@ public class Selecter {
         if(parentId!=-1){
             boolean allSame=resSeries.stream().allMatch(i->i.getParentVen()==parentId);
             if(!allSame){
-                LOGGER.info("{},lessReasonNotSame:{},{}", inputVendorId,parentId,resSeries);
+                LOGGER.info("{},{},lessReasonNotSame:{},{}", inputVendorId,franchiseeSiteTb.getSiteId(),parentId,resSeries);
                 return true;
             }
             FranchiseeTb parentFranchiseeSiteTb = franchiseeTbMapper.selectById(parentId);
             DrawCalculator.LessReason parentLess = drawCalculator.drawCalculate(parentId, parentFranchiseeSiteTb, !major);
             if (!parentLess.isValid()) {
-                LOGGER.info("{},lessReasonBecParent{}:{}", inputVendorId, parentId, lessReason.getReason());
+                LOGGER.info("{},{},lessReasonBecParent:{}:{}", inputVendorId,franchiseeSiteTb.getSiteId(), parentId, lessReason.getReason());
                 res.append(parentFranchiseeSiteTb.getId() + "-" + parentLess.getReason() + "-" + "parentRest lesssssss\n");
                 return true;
             }
