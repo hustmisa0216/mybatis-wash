@@ -1,5 +1,6 @@
-package com.wash.config;
+package com.charge.service;
 
+import com.charge.entity.SelectInfo;
 import com.wash.entity.DecData;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
     //TODO计算过融合比例
     //计算追踪距离超参数阈值、针对车类别设定不同的阈值
     @Component
-public class VenCalculator {
+public class CharCalculator {
 
     private static final LinkedHashMap<Integer,Integer> proportion_map1=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map2=new LinkedHashMap<>();
@@ -34,19 +35,15 @@ public class VenCalculator {
     @PostConstruct
     public void fillMap(){
         // 初始化proportion_map1
-        proportion_map1.put(80, 3);
-        proportion_map1.put(140, 4);
-        proportion_map1.put(210, 5);
-        proportion_map1.put(280, 6);
+        proportion_map1.put(100, 5);
+        proportion_map1.put(200, 6);
         proportion_map1.put(400, 7);
-        proportion_map1.put(510, 8);
-        proportion_map1.put(630, 9);
-        proportion_map1.put(820, 10);
-        proportion_map1.put(1080, 11);
-        proportion_map1.put(1400, 12);
-        proportion_map1.put(1800, 13);
-        proportion_map1.put(2400, 14);
-        proportion_map1.put(3200, 15);
+        proportion_map1.put(600, 8);
+        proportion_map1.put(800, 9);
+        proportion_map1.put(1000, 10);
+        proportion_map1.put(1200, 11);
+        proportion_map1.put(2000, 10);
+
         // 对于大于3200的情况，使用默认值
         proportion_map1.put(Integer.MAX_VALUE, 16);
 
@@ -106,15 +103,39 @@ public class VenCalculator {
         categoryMap.put(4, proportion_map4);
     }
 
-    
-    public DecData calculateAmount(int venId, double sum, Integer inputDecAmount) {
-        int category = fromVen(venId);
-        Map<Integer,Integer> proportionMap=categoryMap.get(category);
-        if(proportionMap==null){
-            return new DecData(sum,0,inputDecAmount != null);
+    private static double getCalAmount(SelectInfo selectInfo, Integer inputAmount) {
+        double vendorIncome= selectInfo.getAmount();
+        double calAmount = 0;
+        double calSum = vendorIncome / 100;
+
+        if (calSum < 100) {
+            calAmount = vendorIncome / 4;
+        } else if (calSum < 200) {
+            calAmount = vendorIncome / 5;
+        } else if (calSum < 400) {
+            calAmount = vendorIncome / 6;
+        } else if (calSum < 600) {
+            calAmount = vendorIncome / 7;
+        } else if (calSum < 800) {
+            calAmount = vendorIncome / 8;
+        } else if (calSum < 2000) {
+            calAmount = vendorIncome / 11;
+        } else {
+            calAmount = vendorIncome / 12;
         }
+
+        if(inputAmount !=null){
+            calAmount= inputAmount *100;
+        }
+        return calAmount;
+    }
+    
+    public double calculateAmount(int venId, SelectInfo selectInfo, Integer inputDecAmount) {
+
+        Map<Integer,Integer> proportionMap=categoryMap.get(1);
+        double vendorIncome= selectInfo.getAmount();
         int divisor = 0;
-        double calSum = sum / 100;
+        double calSum = vendorIncome / 100;
 
         for (Map.Entry<Integer, Integer> entry : proportionMap.entrySet()) {
             if (calSum < entry.getKey()) {
@@ -122,10 +143,11 @@ public class VenCalculator {
                 break;
             }
         }
-        double calAmount = sum / divisor;
+        double calAmount = vendorIncome / divisor;
         int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
-        return new DecData(sum, decAmount, inputDecAmount != null);
+        return  decAmount;
     }
+
 
     public int fromVen(int ven){
         Set<Integer> set1 = Arrays.stream("3225,3191,3433,3353,3243,3250,3203,3229,3024".split(","))
@@ -212,10 +234,10 @@ public class VenCalculator {
         double percent=Math.round((double) 79 * 10000 / 145)/100.0;
 
         System.out.println(percent);
-        VenCalculator venCalculator = new VenCalculator();
-        venCalculator.fillMap();
-        DecData decData = venCalculator.calculateAmount(3323, 200*100, null);
-        System.out.println(decData);
+        CharCalculator charCalculator = new CharCalculator();
+        charCalculator.fillMap();
+        double  dec = charCalculator.calculateAmount(3323, new SelectInfo(20241210,300), null);
+        System.out.println(dec);
     }
 
 }

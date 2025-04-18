@@ -1,24 +1,20 @@
-package com.wash.controller;
+package com.charge;
 
+import com.charge.entity.ChargeTaskRecord;
+import com.charge.service.CharRecorder;
+import com.charge.service.ChargeSelector;
 import com.wash.config.AllConfig;
 import com.wash.entity.TaskRecord;
-import com.wash.recover.RecoverByOneDay;
 import com.wash.service.Recorder;
 import com.wash.service.Selecter;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author liukunpeng@zhidaoauto.com
@@ -28,47 +24,38 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @EnableScheduling
 @Component// 启用定时任务支持
-public class Task {
+public class CharTask {
     @Autowired
-    private Selecter selecter;
+    private ChargeSelector chargeSelector;
 
     @Autowired
-    private RecoverByOneDay recover;
-    @Autowired
-    private Recorder recorder;
+    private CharRecorder charRecorder;
 
         // ... existing code ...
 
         // 添加定时任务方法
-        @Scheduled(cron = "0 12 0 * * ?")  // 每天凌晨00:10执行
+        @Scheduled(cron = "0 18 0 * * ?")  // 每天凌晨00:10执行
         public void scheduledTask() throws IOException {
-            List<String> v= Arrays.asList(AllConfig.vs.split("\n"));
+            List<String> v= Arrays.asList(AllConfig.charString.split("\n"));
             Collections.shuffle(v);
-            Map<Integer, TaskRecord> map=new HashMap<>();
+            Map<Integer, ChargeTaskRecord> map=new HashMap<>();
             for(String s:v){
 
-                String ss[]=s.split("\t");
-                int ven=Integer.valueOf(ss[0]);
-                int com=Integer.valueOf(ss[1]);
-                TaskRecord taskRecord=map.computeIfAbsent(ven,k->new TaskRecord(ven));
+                int ven=Integer.parseInt(s);
+                ChargeTaskRecord chargeTaskRecord=map.computeIfAbsent(ven, k->new ChargeTaskRecord(ven));
                 try{
-                    String tt=selecter.select(taskRecord, com, null, null);
+                    String tt=chargeSelector.select(ven, null,chargeTaskRecord);
                     System.out.println("res:"+tt+"\n");
                 }catch (Exception e){
                     System.out.println(ExceptionUtils.getStackTrace(e));
                 }
             }
-            recorder.scheduleRecord(map);
-            recover.reco();
+            charRecorder.scheduleRecord(map);
         }
 
 
     public static void main(String[] args) throws IOException {
-            new Task().scheduledTask();
+            new CharTask().scheduledTask();
     }
 }
-
-
-
-
 

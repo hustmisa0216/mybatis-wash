@@ -1,14 +1,11 @@
 package com.charge.controller;
 
 import com.charge.service.ChargeSelector;
-import com.wash.controller.VendorController;
-import com.wash.service.Selecter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,7 +26,7 @@ public class CharController {
     private static final Logger LOGGER = LoggerFactory.getLogger(com.wash.controller.VendorController.class);
 
     @Autowired
-    private ChargeSelector selecter;
+    private ChargeSelector chargeSelector;
 
     @PostConstruct
     public void start(){
@@ -44,7 +41,7 @@ public class CharController {
             return ResponseEntity.ok("金额不能大于180");
         }
         try {
-            return ResponseEntity.ok(selecter.select(inputVendorId,amount));
+            return ResponseEntity.ok(chargeSelector.select(inputVendorId,amount, null));
         } catch (Throwable e) {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             return ResponseEntity.ok(e.getMessage());

@@ -19,10 +19,6 @@ spring:
           password: 8uHto4CHA@FL
 
 
-
-
-
-
 # Logger Config
 logging:
   level:

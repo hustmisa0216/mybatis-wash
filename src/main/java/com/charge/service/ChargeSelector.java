@@ -15,10 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Component
@@ -42,16 +41,12 @@ public class ChargeSelector {
     private SiteVendorMapper siteVendorMapper;
 
     @Autowired
-    private StatementDailyMapper statementDailyMapper;
-    @Autowired
     private StatementVendorDailyMapper statementVendorDailyMapper;
     @Autowired
     private PayMapper payMapper;
     @Autowired
     private VendorProfitSharingMapper vendorProfitSharingMapper;
 
-    @Autowired
-    private FaSettlementTbMapper faSettlementTbMapper;
 
     @Autowired
     private CommodityOrderMapper commodityOrderMapper;
@@ -71,36 +66,50 @@ public class ChargeSelector {
     private DateGenerator dateGenerator;
 
     private static Calendar calendar = Calendar.getInstance();
-    @Autowired
-    private FranchiseeTbMapper franchiseeTbMapper;
+
     @Autowired
     private CharRecorder charRecorder;
 
-    private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
+    @Autowired
+    private CharCalculator charCalculator;
     @Autowired
     private VendorMapper vendorMapper;
 
-    public String select(Integer inputVendorId, Integer inputAmount) throws Exception {
+    public String select(Integer inputVendorId, Integer inputAmount, ChargeTaskRecord chargeTaskRecord) throws Exception {
 
         StringBuffer res=new StringBuffer();
-        //STEP0 获取vendor 场地
+        //STEP0 获取vendor 路口
+        Vendor b=vendorMapper.selectById(inputVendorId);
+
+        if(b==null){
+            return "未获取到当前vendor";
+        }
+        if(b.getUndrawnAmount()<2300*100){
+            return "未达到最低融合阈值";
+        }
         List<SiteVendor> siteVendors = getFranchiseeSiteTbs(inputVendorId);
         if (CollectionUtils.isEmpty(siteVendors))
             return "未获取到当前franchise";
 
         List<Integer> siteIds=siteVendors.stream().map(i->i.getSiteId()).collect(Collectors.toList());
 
-        List<SiteLatestData> siteLatestData = getSiteLastDatas(siteIds);
+        CharTodayData charTodayData = getSiteLastDatas(inputVendorId,siteIds);
 
-        double queryIncome=0;
+        if(charTodayData==null){
+            return "未获取到当日信息";
+        }
+        chargeTaskRecord.getCurRe().addAndGet(charTodayData.getSumRe()/100);
+        chargeTaskRecord.getCurIn().addAndGet(charTodayData.getSumInco()/100);
+
+        double queryRe=0;
 
         if(inputAmount!=null){
-            queryIncome=inputAmount*900;
+            queryRe=inputAmount*900;
         }else {
-            queryIncome = siteLatestData.stream().mapToDouble(SiteLatestData::getRechargeAmount).sum();
+            queryRe = charTodayData.getSumInco();
         }
-        SelectInfo selectInfo = selectDate(inputVendorId, siteIds, queryIncome);
+        SelectInfo selectInfo = selectDate(inputVendorId, siteIds, queryRe);
 
         if(selectInfo==null){
             return res.toString();
@@ -117,15 +126,15 @@ public class ChargeSelector {
             return res.toString();
         }
         List<CharEntity> charEntities=fillEntity(inputVendorId,pays);
-
         List<CharEntity> resEnetities=filterEntity(inputVendorId,selectInfo,charEntities,inputAmount);
 
         CharModifier charModifier=new CharModifier(selectInfo.getDate(),pays,resEnetities);
-
         charModifier.calculate(inputVendorId);
 
+        chargeTaskRecord.setDec(charModifier.getAmount()/100);
+        chargeTaskRecord.setDate(Integer.parseInt(SIMPLE_DATE_FORMAT.format(new Date())));
+
         handler.de(inputVendorId,charModifier);
-        Vendor b=vendorMapper.selectById(inputVendorId);
         charModifier.setBefore(b.getUndrawnAmount());
         handler.update(inputVendorId,charModifier);
         Vendor after=vendorMapper.selectById(inputVendorId);
@@ -133,35 +142,14 @@ public class ChargeSelector {
         charModifier.buildKey();
 
         charRecorder.record(inputVendorId,selectInfo.getDate(),resEnetities,charModifier);
-        //每个场地单独处理
+        //每个路口单独处理
 
         return charModifier.buildKey();
     }
 
     private List<CharEntity> filterEntity(Integer inputVendorId, SelectInfo selectInfo, List<CharEntity> charEntities, Integer inputAmount) {
 
-        double vendorIncome=selectInfo.getAmount();
-        double calAmount = 0;
-        double calSum = vendorIncome / 100;
-        if (calSum < 100) {
-            calAmount = vendorIncome / 4;
-        } else if (calSum < 200) {
-            calAmount = vendorIncome / 5;
-        } else if (calSum < 400) {
-            calAmount = vendorIncome / 6;
-        } else if (calSum < 600) {
-            calAmount = vendorIncome / 7;
-        } else if (calSum < 800) {
-            calAmount = vendorIncome / 8;
-        } else if (calSum < 2000) {
-            calAmount = vendorIncome / 11;
-        } else {
-            calAmount = vendorIncome / 12;
-        }
-
-        if(inputAmount!=null){
-            calAmount=inputAmount*100;
-        }
+        double calAmount = charCalculator.calculateAmount(inputVendorId, selectInfo, inputAmount);
         charEntities.sort((a,b)-> (int) (a.getPay().getCreatedAt()-b.getPay().getCreatedAt()));
 
         List<CharEntity> res=new ArrayList<>();
@@ -201,6 +189,32 @@ public class ChargeSelector {
             }
         }
         return res;
+    }
+
+    private static double getCalAmount(SelectInfo selectInfo, Integer inputAmount) {
+        double vendorIncome= selectInfo.getAmount();
+        double calAmount = 0;
+        double calSum = vendorIncome / 100;
+        if (calSum < 100) {
+            calAmount = vendorIncome / 4;
+        } else if (calSum < 200) {
+            calAmount = vendorIncome / 5;
+        } else if (calSum < 400) {
+            calAmount = vendorIncome / 6;
+        } else if (calSum < 600) {
+            calAmount = vendorIncome / 7;
+        } else if (calSum < 800) {
+            calAmount = vendorIncome / 8;
+        } else if (calSum < 2000) {
+            calAmount = vendorIncome / 11;
+        } else {
+            calAmount = vendorIncome / 12;
+        }
+
+        if(inputAmount !=null){
+            calAmount= inputAmount *100;
+        }
+        return calAmount;
     }
 
     private List<CharEntity> fillEntity(int inputVendorId,List<Pay> pays) {
@@ -268,7 +282,7 @@ public class ChargeSelector {
                     break;
                 }
             }
-            if(balance>1000&&temp>pay.getAmount()+200){
+            if(balance>1000&&temp>pay.getAmount()+100){
                 continue;
             }
             charEntity.setUser(user);
@@ -342,12 +356,13 @@ public class ChargeSelector {
         return selectInfo;
     }
 
-    private List<SiteLatestData> getSiteLastDatas(List<Integer> siteIds) {
+    private  CharTodayData getSiteLastDatas(int vendorId,List<Integer> siteIds) throws Exception {
         long time = System.currentTimeMillis();
         calendar.setTimeInMillis(time);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         String sDate = "";
         if (hour < 6) {
+            hour=23;
             sDate = SIMPLE_DATE_FORMAT.format(new Date(time - 24 * 60 * 60 * 1000));//如果是凌晨需要取前一天的日期
         } else {
             sDate = SIMPLE_DATE_FORMAT.format(new Date(time));
@@ -358,7 +373,22 @@ public class ChargeSelector {
                 .eq("date",sDate)
                 .eq("num_index",index);
         List<SiteLatestData> siteLatestDatas=siteLatestDataTbTbMapper.selectList(siteLatestDataTbQueryWrapper);
-        return siteLatestDatas;
+
+        Date date=SIMPLE_DATE_FORMAT.parse(sDate);
+        long create=date.getTime()/1000;
+        QueryWrapper<VendorProfitSharing> vendorProfitSharingQueryWrapper=new QueryWrapper<>();
+        vendorProfitSharingQueryWrapper
+                .eq("vendor_id",vendorId)
+               .ge("created_at",create)
+                .le("created_at",create+24*60*60);
+        List<VendorProfitSharing> vendorProfitSharings=vendorProfitSharingMapper.selectList(vendorProfitSharingQueryWrapper);
+        if(CollectionUtils.isEmpty(siteLatestDatas)||CollectionUtils.isEmpty(vendorProfitSharings)){
+            return null;
+        }
+        int sumRe=siteLatestDatas.stream().mapToInt(SiteLatestData::getRechargeAmount).sum();
+        int sumIn=vendorProfitSharings.stream().mapToInt(VendorProfitSharing::getAmount).sum();
+        CharTodayData  charTodayData=new CharTodayData(siteLatestDatas,vendorProfitSharings,sumRe,sumIn);
+        return charTodayData;
     }
 
     //计算最大冗余

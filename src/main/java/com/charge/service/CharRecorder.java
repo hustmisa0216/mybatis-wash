@@ -1,18 +1,18 @@
 package com.charge.service;
 
 import com.alibaba.fastjson.JSON;
-import com.charge.entity.CharEntity;
-import com.charge.entity.CharModifier;
-import com.charge.entity.ChargeOrder;
-import com.charge.entity.VendorProfitSharing;
+import com.charge.entity.*;
+import com.wash.entity.TaskRecord;
 import com.wash.entity.constants.FilesEnum;
 
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author liukunpeng@zhidaoauto.com
@@ -117,4 +117,42 @@ public class CharRecorder {
         return CHAR_FILE_PATH + vendorId + "/" + date + "/"; // 替换为实际路径
     }
 
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+
+    public void scheduleRecord(Map<Integer, ChargeTaskRecord> map) {
+        AtomicInteger allcome = new AtomicInteger(0);
+        AtomicInteger allre = new AtomicInteger(0);
+        AtomicInteger allIn=new AtomicInteger(0);
+        try {
+            String path = CHAR_FILE_PATH + "/"; // 替换为实际路径
+            String date = SIMPLE_DATE_FORMAT.format(new Date());
+            FileWriter dateWriter = new FileWriter(path + FilesEnum.SCH.getFileName(), true);
+            List<ChargeTaskRecord> taskRecordList=new ArrayList<>();
+
+            for (int ven : map.keySet()) {
+                ChargeTaskRecord taskRecord = map.get(ven);
+                taskRecord.setDate(Integer.parseInt(date));
+
+                allIn.addAndGet(taskRecord.getCurIn().get());
+                allre.addAndGet(taskRecord.getCurRe().get());
+                allcome.addAndGet(taskRecord.getDec());
+                double percent = Math.round((double) taskRecord.getDec() * 10000 / taskRecord.getCurIn().get()) / 100.0;
+                taskRecord.setPercent(percent);
+                taskRecordList.add(taskRecord);
+            }
+            taskRecordList.sort((a, b) -> (int) (b.getPercent() * 100 - a.getPercent() * 100));
+
+            for (ChargeTaskRecord taskRecord : taskRecordList) {
+                if (taskRecord.getCurIn().get() + taskRecord.getCurRe().get() > 10) {
+                    dateWriter.write(taskRecord.genRecord() + "\n");
+                    dateWriter.flush();
+                }
+            }
+            double allPer = Math.round((double) allcome.get() * 10000 / allIn.get()) / 100.0;
+            dateWriter.write(date + "  ,  " + "all" + "  ,  " + allcome + "  ,  " + allre.get() + "  ,  " + allIn.get() + "  ,  " + allPer + "%\n\n");
+            dateWriter.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
