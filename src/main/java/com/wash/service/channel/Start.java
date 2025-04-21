@@ -168,7 +168,6 @@ public class Start {
             if (CollectionUtils.isNotEmpty(allOrders)) {
                 ordersTbMapper.deleteBatchIds(allOrders);
             }
-
         }
         return null;
     }

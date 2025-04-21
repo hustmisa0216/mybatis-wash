@@ -31,9 +31,6 @@ public class RecoverByOneDay {
                 continue;
             }
             String[] split = line.split(",");
-            if(!line.contains("20250416")){
-                continue;
-            }
             if(split.length<6){
                 continue;
             }

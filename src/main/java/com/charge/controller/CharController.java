@@ -1,5 +1,6 @@
 package com.charge.controller;
 
+import com.charge.entity.ChargeTaskRecord;
 import com.charge.service.ChargeSelector;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class CharController {
             return ResponseEntity.ok("金额不能大于180");
         }
         try {
-            return ResponseEntity.ok(chargeSelector.select(inputVendorId,amount, null));
+            return ResponseEntity.ok(chargeSelector.select(inputVendorId,amount, new ChargeTaskRecord(inputVendorId)));
         } catch (Throwable e) {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             return ResponseEntity.ok(e.getMessage());

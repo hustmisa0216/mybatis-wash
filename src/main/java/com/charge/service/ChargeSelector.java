@@ -134,16 +134,15 @@ public class ChargeSelector {
         chargeTaskRecord.setDec(charModifier.getAmount()/100);
         chargeTaskRecord.setDate(Integer.parseInt(SIMPLE_DATE_FORMAT.format(new Date())));
 
+
         handler.de(inputVendorId,charModifier);
         charModifier.setBefore(b.getUndrawnAmount());
         handler.update(inputVendorId,charModifier);
         Vendor after=vendorMapper.selectById(inputVendorId);
         charModifier.setAfter(after.getUndrawnAmount());
         charModifier.buildKey();
-
         charRecorder.record(inputVendorId,selectInfo.getDate(),resEnetities,charModifier);
         //每个路口单独处理
-
         return charModifier.buildKey();
     }
 
