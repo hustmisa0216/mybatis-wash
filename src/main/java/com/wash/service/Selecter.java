@@ -19,6 +19,7 @@ import com.wash.mapper.*;
 import com.wash.service.calculator.DrawFilter;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.list.PredicatedList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -475,7 +476,11 @@ public class Selecter {
 
         List<PayTb> payTbList = payTbMapper.selectList(payTbQueryWrapper);
         payTbList.stream().forEach(i -> dateGenerator.generateDate(i));
-        return payTbList;
+        if(CollectionUtils.isNotEmpty(payTbList)){
+            return payTbList.stream().filter(i->i.getRefund()==0).collect(Collectors.toList());
+        }else{
+             return new ArrayList<>();
+        }
     }
 
     private List<DailyData> selectHistoryDate(FranchiseeSiteTb franchiseeSiteTb, double siteSum, Integer inputVendorId, Integer inputDecAmount) throws ParseException {
