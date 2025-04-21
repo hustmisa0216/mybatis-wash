@@ -2,9 +2,7 @@ package com.wash.service.calculator;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wash.entity.franchisee.FaWithdrawTb;
-import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.franchisee.FranchiseeTb;
-import com.wash.entity.statistics.EnsureIncomeTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.mapper.EnsureIncomeTbMapper;
 import com.wash.mapper.FaSettlementTbMapper;
@@ -27,7 +25,7 @@ import java.util.Map;
  * @Description
  */
 @Service
-public class DrawCalculator {
+public class DrawFilter {
 
     @Autowired
     private FaWithdrawTbMapper faWithdrawTbMapper;
@@ -49,7 +47,7 @@ public class DrawCalculator {
 
         if(CollectionUtils.isEmpty(faWithdrawTbs)){
             if(major){
-               return new LessReason("未提过车",false);
+               return new LessReason("未融合过车辆id",false);
             }else{
                 return new LessReason("",true);
             }

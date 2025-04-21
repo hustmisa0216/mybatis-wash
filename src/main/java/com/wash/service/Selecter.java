@@ -5,7 +5,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wash.cache.DateCache;
-import com.wash.config.VenCalculator;
+import com.wash.service.calculator.VenCalculator;
 import com.wash.entity.*;
 import com.wash.entity.constants.DeliveryMethodType;
 import com.wash.entity.constants.FilesEnum;
@@ -16,7 +16,7 @@ import com.wash.entity.statistics.DailyPaperTb;
 import com.wash.entity.statistics.FaSettlementTb;
 import com.wash.entity.statistics.SiteLatestDataTb;
 import com.wash.mapper.*;
-import com.wash.service.calculator.DrawCalculator;
+import com.wash.service.calculator.DrawFilter;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -91,7 +91,7 @@ public class Selecter {
     private static ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
     @Autowired
-    private DrawCalculator   drawCalculator;
+    private DrawFilter drawCalculator;
 
     public String select(TaskRecord taskRecord, Integer inputSiteId, Integer inputDate, Integer inputDecAmount) throws Exception {
 
@@ -237,7 +237,7 @@ public class Selecter {
 
     private boolean judgeOandPLess(Integer inputVendorId, StringBuffer res, FranchiseeTb franchiseeTb, FranchiseeSiteTb franchiseeSiteTb, List<Series> resSeries) {
         boolean major= franchiseeSiteTb.getOwnPercent().doubleValue()> franchiseeSiteTb.getParentPercent().doubleValue();
-        DrawCalculator.LessReason lessReason =drawCalculator.drawCalculate(inputVendorId, franchiseeTb,major);
+        DrawFilter.LessReason lessReason =drawCalculator.drawCalculate(inputVendorId, franchiseeTb,major);
         if(!lessReason.isValid()){
             LOGGER.info("{},{},lessReason:{}", inputVendorId,franchiseeSiteTb.getSiteId(),lessReason.getReason());
             res.append(franchiseeTb.getId() +  "-"+lessReason.getReason()+"-" + "rest lesssssss\n");
@@ -254,7 +254,7 @@ public class Selecter {
                 return true;
             }
             FranchiseeTb parentFranchiseeSiteTb = franchiseeTbMapper.selectById(parentId);
-            DrawCalculator.LessReason parentLess = drawCalculator.drawCalculate(parentId, parentFranchiseeSiteTb, !major);
+            DrawFilter.LessReason parentLess = drawCalculator.drawCalculate(parentId, parentFranchiseeSiteTb, !major);
             if (!parentLess.isValid()) {
                 LOGGER.info("{},{},lessReasonBecParent:{}:{}", inputVendorId,franchiseeSiteTb.getSiteId(), parentId, lessReason.getReason());
                 res.append(parentFranchiseeSiteTb.getId() + "-" + parentLess.getReason() + "-" + "parentRest lesssssss\n");
