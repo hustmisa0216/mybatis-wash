@@ -116,6 +116,12 @@ public class Start {
                     if (CollectionUtils.isEmpty(commodityOrderProfitSharingTbs)) {
                         continue;
                     }
+
+                    double sum=commodityOrderProfitSharingTbs.stream().mapToDouble(CommodityOrderProfitSharingTb::getRechargeAmount).sum();
+                    if(commodityOrderTb.getPaymentMoney().intValue()!=sum){
+                        continue;
+                    }
+
                     commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
                     DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
 
@@ -149,6 +155,33 @@ public class Start {
                     }
                 }
             }
+
+            boolean g=true;
+            for (int date : cAmountMap.keySet()) {
+                CAmount cAmount = cAmountMap.get(date);
+                if (cAmount.getPreAmount().get() == 0 && cAmount.getPreAmount().get() == 0) {
+                    continue;
+                }
+                QueryWrapper<EnsureIncomeTb> queryWrapper = new QueryWrapper<>();
+                queryWrapper
+                        .eq("site_id", siteId)
+                        .eq("date", date);
+                List<EnsureIncomeTb> ensureIncomeTbs=ensureIncomeTbMapper.selectList(queryWrapper);
+                if(CollectionUtils.isEmpty(ensureIncomeTbs)){
+                    g=false;
+                }else{
+                    double sum=ensureIncomeTbs.stream().mapToDouble(EnsureIncomeTb::getPrepaidMoney).sum();
+                    double sumvip=ensureIncomeTbs.stream().mapToDouble(EnsureIncomeTb::getVipMoney).sum();
+                    if(sum<cAmount.getPreAmount().get()||sumvip<cAmount.getVipAmount().get()){
+                        g=false;
+                    }
+                }
+            }
+
+            if(!g){
+                continue;
+            }
+
             for (int date : cAmountMap.keySet()) {
                 CAmount cAmount = cAmountMap.get(date);
                 if (cAmount.getPreAmount().get() == 0 && cAmount.getPreAmount().get() == 0) {
@@ -162,6 +195,7 @@ public class Start {
                         .setSql(cAmount.getVipAmount().get() != 0, "vip_money = vip_money -" + cAmount.getVipAmount());
                 ensureIncomeTbMapper.update(null, ensureIncomeTbQueryWrapper);
             }
+
             if (CollectionUtils.isNotEmpty(allCommodityOrdersTbList)) {
                 commodityOrdersTbMapper.deleteBatchIds(allCommodityOrdersTbList);
             }

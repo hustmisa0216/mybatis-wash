@@ -1,4 +1,4 @@
-package com.wash.config;
+package com.wash.service.calculator;
 
 import com.wash.entity.DecData;
 import org.springframework.stereotype.Component;
@@ -23,6 +23,8 @@ public class VenCalculator {
     private static final LinkedHashMap<Integer,Integer> proportion_map2=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map3=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map4=new LinkedHashMap<>();
+    private static final LinkedHashMap<Integer,Integer> proportion_map5=new LinkedHashMap<>();
+
 
 //    private static final Map<Integer,Integer> constants_map1=new HashMap<>();
 //    private static final Map<Integer,Integer> constants_map2=new HashMap<>();
@@ -100,10 +102,31 @@ public class VenCalculator {
         // 对于大于3200的情况，使用默认值
         proportion_map4.put(Integer.MAX_VALUE, 20);
 
+
+        proportion_map5.put(80, 7);
+        proportion_map5.put(140, 8);
+        proportion_map5.put(210, 9);
+        proportion_map5.put(280, 10);
+        proportion_map5.put(360, 11);
+        proportion_map5.put(450, 12);
+        proportion_map5.put(570, 13);
+        proportion_map5.put(680, 14);
+        proportion_map5.put(820, 15);
+        proportion_map5.put(1080, 16);
+        proportion_map5.put(1400, 17);
+        proportion_map5.put(1800, 18);
+        proportion_map5.put(2200, 19);
+        proportion_map5.put(2600, 20);
+        proportion_map5.put(3000, 21);
+        // 对于大于3200的情况，使用默认值
+        proportion_map5.put(Integer.MAX_VALUE, 22);
+
         categoryMap.put(1, proportion_map1);
         categoryMap.put(2, proportion_map2);
         categoryMap.put(3, proportion_map3);
         categoryMap.put(4, proportion_map4);
+        categoryMap.put(5, proportion_map5);
+
     }
 
     
@@ -149,12 +172,11 @@ public class VenCalculator {
         }else if(set2.contains(ven)){
             return 3;
         }else if(set3.contains(ven)){
-            return 3;
-        }else if(set4.contains(ven)){
             return 4;
+        }else if(set4.contains(ven)){
+            return 5;
         }
-        return 4;//默认类别3
-
+        return 4;//默认类别
     }
 
     //根据选定history 的计算额度
