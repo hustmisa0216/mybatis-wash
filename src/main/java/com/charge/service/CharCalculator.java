@@ -39,18 +39,19 @@ public class CharCalculator {
         proportion_map1.put(100, 5);
         proportion_map1.put(180, 6);
         proportion_map1.put(280, 7);
-        proportion_map1.put(400, 8);
-        proportion_map1.put(500, 9);
-        proportion_map1.put(600,10);
-        proportion_map1.put(800, 11);
-        proportion_map1.put(1000, 12);
-        proportion_map1.put(1200, 13);
-        proportion_map1.put(1400, 14);
-        proportion_map1.put(1600, 15);
-        proportion_map1.put(2000, 16);
+        proportion_map1.put(360, 8);
+        proportion_map1.put(450, 9);
+        proportion_map1.put(560,10);
+        proportion_map1.put(680,11);
+        proportion_map1.put(800, 12);
+        proportion_map1.put(1000, 13);
+        proportion_map1.put(1200, 14);
+        proportion_map1.put(1400, 15);
+        proportion_map1.put(1600, 16);
+        proportion_map1.put(2000, 17);
 
         // 对于大于3200的情况，使用默认值
-        proportion_map1.put(Integer.MAX_VALUE, 16);
+        proportion_map1.put(Integer.MAX_VALUE, 19);
 
         proportion_map2.put(80, 5);
         proportion_map2.put(140, 6);
@@ -67,7 +68,6 @@ public class CharCalculator {
         proportion_map2.put(3200, 18);
         // 对于大于3200的情况，使用默认值
         proportion_map2.put(Integer.MAX_VALUE, 19);
-
 
 
         proportion_map3.put(80, 6);
@@ -108,33 +108,6 @@ public class CharCalculator {
         categoryMap.put(4, proportion_map4);
     }
 
-    private static double getCalAmount(SelectInfo selectInfo, Integer inputAmount) {
-        double vendorIncome= selectInfo.getAmount();
-        double calAmount = 0;
-        double calSum = vendorIncome / 100;
-
-        if (calSum < 100) {
-            calAmount = vendorIncome / 4;
-        } else if (calSum < 200) {
-            calAmount = vendorIncome / 5;
-        } else if (calSum < 400) {
-            calAmount = vendorIncome / 6;
-        } else if (calSum < 600) {
-            calAmount = vendorIncome / 7;
-        } else if (calSum < 800) {
-            calAmount = vendorIncome / 8;
-        } else if (calSum < 2000) {
-            calAmount = vendorIncome / 11;
-        } else {
-            calAmount = vendorIncome / 12;
-        }
-
-        if(inputAmount !=null){
-            calAmount= inputAmount *100;
-        }
-        return calAmount;
-    }
-    
     public double calculateAmount(int venId, SelectInfo selectInfo, Integer inputDecAmount) {
 
         Map<Integer,Integer> proportionMap=categoryMap.get(1);

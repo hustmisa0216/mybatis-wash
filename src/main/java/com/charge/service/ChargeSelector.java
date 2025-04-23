@@ -154,6 +154,7 @@ public class ChargeSelector {
         List<CharEntity> res=new ArrayList<>();
         int tempAmount=0;
         Set<Integer> set=new HashSet<>();
+        int maxDiff = calMaxDiff((int) calAmount);
         for (int i = 5; i > 1; i--) {
             Iterator<CharEntity> iterator = charEntities.iterator();
             int k = 0;
@@ -170,8 +171,7 @@ public class ChargeSelector {
                 }
                 if (k % i == 0) {
                     double diff = tempAmount + charEntity.getPay().getAmount() - calAmount;
-                    if (diff > 1000) {
-                        int maxDiff = calMaxDiff(calAmount);
+                    if (diff > 500) {
                         if (diff > maxDiff) {
                             k++;
                             continue;
@@ -180,7 +180,7 @@ public class ChargeSelector {
                     res.add(charEntity);
                     tempAmount += charEntity.getPay().getAmount();
                     set.add(charEntity.getPay().getId());
-                    if (tempAmount > calAmount - 500) {
+                    if (tempAmount >= calAmount - maxDiff/2) {
                         return res;
                     }
                 }
@@ -391,16 +391,25 @@ public class ChargeSelector {
     }
 
     //计算最大冗余
-    private static int calMaxDiff(double decData) {
+    private static int calMaxDiff(int decData) {
         int maxDiff = 0;
-        if (decData / 10000 == 0) {
-            maxDiff = 3000;
-        } else if (decData/ 10000 == 1) {
-            maxDiff = 4500;
-        } else if (decData/ 10000 == 2) {
-            maxDiff = 6200;
+
+        if (decData / 2500 == 0) {
+            maxDiff = 800;
+        } else if (decData/ 4000 == 0) {
+            maxDiff = 1100;
+        } else if (decData/ 7000 == 0) {
+            maxDiff = 1400;
+        } else if (decData/ 10000 == 0) {
+            maxDiff = 1800;
+        } else if (decData/ 15000 == 0) {
+            maxDiff = 2300;
+        } else if (decData/ 20000 == 0) {
+            maxDiff = 2800;
+        } else if (decData/ 25000 == 0) {
+            maxDiff = 3300;
         } else {
-            maxDiff = 7000;
+            maxDiff = 4000;
         }
         return maxDiff;
     }
@@ -413,4 +422,7 @@ public class ChargeSelector {
     }
 
 
+    public static void main(String[] args) {
+        System.out.println(calMaxDiff(12000));
+    }
 }
