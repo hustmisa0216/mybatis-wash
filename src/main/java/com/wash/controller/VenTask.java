@@ -53,7 +53,6 @@ public class VenTask {
                 }
             }
             recorder.scheduleRecord(map);
-            recover.reco();
         }
 
 
