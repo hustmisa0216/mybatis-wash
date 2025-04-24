@@ -109,6 +109,12 @@ public class ChargeSelector {
         }else {
             queryRe = charTodayData.getSumInco();
         }
+
+        if(queryRe<9000){
+            chargeTaskRecord.setDec(0);
+            chargeTaskRecord.setDate(Integer.parseInt(SIMPLE_DATE_FORMAT.format(new Date())));
+            return "未达到融合阈值";
+        }
         SelectInfo selectInfo = selectDate(inputVendorId, siteIds, queryRe);
 
         if(selectInfo==null){
