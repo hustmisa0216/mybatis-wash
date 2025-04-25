@@ -33,7 +33,7 @@ public class VendorController {
         // 3. date输入->给dec就按dec筛选,不给dec就按给定日期的1/9
 
         if(inputDecAmount!=null){
-            if(inputDecAmount<10||inputDecAmount>300){
+            if(inputDecAmount<5||inputDecAmount>300){
                 return ResponseEntity.ok("謹慎取值");
 
             }
