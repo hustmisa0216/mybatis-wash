@@ -12,6 +12,7 @@ import com.wash.entity.statistics.EnsureIncomeTb;
 import com.wash.mapper.*;
 import com.wash.mapper.channel.ChannelSiteTbMapper;
 import com.wash.mapper.channel.ChannelTbMapper;
+import com.wash.service.Collector;
 import com.wash.service.Selecter;
 import com.wash.service.channel.entity.CAmount;
 import com.wash.service.channel.entity.ChannelSiteTb;
@@ -58,8 +59,9 @@ public class Start {
     @Autowired
     private CommodityOrderProfitSharingTbMapper commodityOrderProfitSharingTbMapper;
 
+
     @Autowired
-    private Selecter selecter;
+    private Collector collector;
 
     public String start(int channelId, int startDate, int endDate) throws ParseException {
         QueryWrapper<ChannelSiteTb> channelSiteTbQueryWrapper = new QueryWrapper<>();
@@ -147,7 +149,7 @@ public class Start {
                     }
 
                     //结算完毕
-                    List<OrdersTb> ordersTbs = selecter.fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType, expireTime, commodityOrderId);
+                    List<OrdersTb> ordersTbs = collector.fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType, expireTime, commodityOrderId);
 
                     if (CollectionUtils.isNotEmpty(ordersTbs)) {
                         allOrders.addAll(ordersTbs);

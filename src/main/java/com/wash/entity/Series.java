@@ -2,6 +2,7 @@ package com.wash.entity;
 
 import com.wash.entity.data.*;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
+import com.wash.entity.u.UserTb;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -24,6 +25,10 @@ public class Series {
     private int parentVen=-1;
     private FranchiseeSiteTb franchiseeSiteTb;
     private List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs=new ArrayList<>();
+
+    private UserTb userTb;
+    private List<PayTb> uPaytbs=new ArrayList<>();
+
     public Series(PayTb payTb,FranchiseeSiteTb franchiseeSiteTb) {
         this.payTb = payTb;
         this.franchiseeSiteTb=franchiseeSiteTb;
