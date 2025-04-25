@@ -40,6 +40,13 @@
             <version>3.5.0</version>
         </dependency>
 
+
+        <dependency>
+        <groupId>mogo.yycp</groupId>
+        <artifactId>traffic_statistics</artifactId>
+        <version>4.5.0-flink-hk-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>p6spy</groupId>
             <artifactId>p6spy</artifactId>
