@@ -1,10 +1,13 @@
 package com.wash.entity.data;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 @Data
 public class PayTb {
+    @TableId(type = IdType.AUTO)
     private Integer id; // 用户ID
     private Integer uid; // 用户ID
     private String paySn; // 订单号

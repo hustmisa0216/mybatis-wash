@@ -93,7 +93,8 @@ public class Start {
             commodityOrdersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
             Map<Integer, List<CommodityOrdersTb>> commodityDateMap = commodityOrdersTbs.stream().collect(Collectors.groupingBy(CommodityOrdersTb::getDate));
 
-            Map<Integer, List<CommodityOrdersTb>> resMap = commodityDateMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, // 保留原来的键
+            Map<Integer, List<CommodityOrdersTb>> resMap = commodityDateMap.entrySet()
+                    .stream().collect(Collectors.toMap(Map.Entry::getKey, // 保留原来的键
                     entry -> IntStream.range(0, entry.getValue().size()) // 获取索引范围
                             .filter(i -> i % 2 == 0 || i % 5 == 0) // 过滤出索引为 3 的倍数
                             .mapToObj(entry.getValue()::get) // 获取对应的订单对象
