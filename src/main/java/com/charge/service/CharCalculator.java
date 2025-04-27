@@ -37,21 +37,22 @@ public class CharCalculator {
         // 初始化proportion_map1
         proportion_map1.put(60, 4);
         proportion_map1.put(100, 5);
-        proportion_map1.put(180, 6);
-        proportion_map1.put(280, 7);
-        proportion_map1.put(360, 8);
-        proportion_map1.put(450, 9);
-        proportion_map1.put(560,10);
-        proportion_map1.put(680,11);
-        proportion_map1.put(800, 12);
-        proportion_map1.put(1000, 13);
-        proportion_map1.put(1200, 14);
-        proportion_map1.put(1400, 15);
-        proportion_map1.put(1600, 16);
-        proportion_map1.put(2000, 17);
+        proportion_map1.put(150, 6);
+        proportion_map1.put(210, 7);
+        proportion_map1.put(280, 8);
+        proportion_map1.put(360, 9);
+        proportion_map1.put(450, 10);
+        proportion_map1.put(560,11);
+        proportion_map1.put(680,12);
+        proportion_map1.put(800, 13);
+        proportion_map1.put(1000, 14);
+        proportion_map1.put(1200, 15);
+        proportion_map1.put(1400, 16);
+        proportion_map1.put(1600, 17);
+        proportion_map1.put(2000, 18);
 
         // 对于大于3200的情况，使用默认值
-        proportion_map1.put(Integer.MAX_VALUE, 19);
+        proportion_map1.put(Integer.MAX_VALUE, 20);
 
         proportion_map2.put(80, 5);
         proportion_map2.put(140, 6);

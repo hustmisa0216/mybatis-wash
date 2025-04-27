@@ -108,10 +108,10 @@ public class CharModifier {
             }
 
         }
-
     }
 
+
     public String buildKey() {
-        return selectDate+"||("+allCount+"-"+allAmount+")||("+secCount+"-"+amount+")||("+Math.ceil(before/100)+"-"+Math.ceil(after/100) +")";
+        return selectDate+"||("+allCount+"-"+allAmount+")||("+secCount+"-"+amount+")||("+Math.ceil(before/100)+"-"+Math.ceil(after/100) +")"+"\n";
     }
 }

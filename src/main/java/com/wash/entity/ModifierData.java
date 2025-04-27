@@ -119,7 +119,7 @@ public class ModifierData {
         int dayRechargeAmount=dailyData.getDailyPaperTb().getRechargeAmount();
         int allIn=dailyData.getFaSettlementTb().getEarnings();
         this.key=vendorId+"-"+siteId+"-"+selectDate+
-                "||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
+                "||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")"+"\n";
         this.simpleKey=allPayCount+"-"+Math.ceil(dayRechargeAmount/100)+"-"+Math.ceil(allIn/100)+"||"+payCount+"-"+Math.ceil(totalChargeAmount/100)+"-"+Math.ceil(totalIncome/100);
         newPayCount=payCount/2+1;
     }

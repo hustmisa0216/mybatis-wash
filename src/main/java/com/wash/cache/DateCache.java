@@ -1,6 +1,10 @@
 package com.wash.cache;
 
+import com.charge.entity.SiteLatestData;
+import com.wash.entity.constants.FilesEnum;
 import com.wash.service.Recorder;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -10,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author liukunpeng@zhidaoauto.com
@@ -26,96 +31,87 @@ public class DateCache {
     public  static final String C_FILE_PATH = "D:\\mogo\\charge\\";
 
     @PostConstruct
-    public void reload() throws IOException {
+    public void reload() {
         File baseDir = new File(Recorder.FILE_PATH);
-
         //从文件夹层级读取map
-        if (baseDir.isDirectory()) {
-            File[] originDirectories = baseDir.listFiles(File::isDirectory);
-            if (originDirectories ==null) {
-                throw new RuntimeException("未读取到历史目录");
-            }
-            for (File vendorDir : originDirectories) {
-                if (!vendorDir.isDirectory()) continue;
-                File[] siteDirs = vendorDir.listFiles();
-                if (siteDirs == null) continue;
-                for (File siteDir : siteDirs) {
-                    if (!siteDir.isDirectory()) continue;
-                    File[] dateDirs = siteDir.listFiles();
-                    if (dateDirs == null) continue;
-                    for (File dateDir : dateDirs) {
-                        if (!dateDir.isDirectory()) continue;
-                        File[] files = dateDir.listFiles();
-                        if (files != null) {
-                            for (File file : files) {
-                                String absFileName = file.getAbsoluteFile().getName();
-                                if (absFileName.equals("date.csv")) {
-                                    // 提取 vendorId, siteId, date
-                                    String path = file.getPath().replace(Recorder.FILE_PATH, "");
-                                    long length=file.length();
-                                    if (length> 0) {
-                                        String[] pathParts = path.split("\\\\");
-                                        if (pathParts.length >= 3) {
-                                            int vendorId = Integer.valueOf(pathParts[0]); // 3273
-                                            int siteId = Integer.valueOf(pathParts[1]); // 951
-                                            int date = Integer.valueOf(pathParts[2]); // 20240509
-                                            List<String> lines = Files.readAllLines(file.toPath());
 
-                                            int totalAmount=0;
-                                            int totalPay=0;
-                                            int all=0;
-                                            for(int k=0;k<lines.size();k++){
+        Arrays.stream(baseDir.listFiles(File::isDirectory))
+                .filter(File::isDirectory)
+                .flatMap(vendorDir -> Arrays.stream(vendorDir.listFiles()))
+                .filter(File::isDirectory)
+                .flatMap(siteDir -> Arrays.stream(siteDir.listFiles()))
+                .filter(File::isDirectory)
+                .flatMap(dateDir -> Arrays.stream(dateDir.listFiles()))
+                .filter(file -> file != null && FilesEnum.DATE.getFileName().equals(file.getAbsoluteFile().getName()))
+                .forEach(file -> {
+                    // 提取 vendorId, siteId, date
+                    String path = file.getPath().replace(Recorder.FILE_PATH, "");
+                    long length = file.length();
+                    if (length > 0) {
+                        String[] pathParts = path.split("\\\\");
+                        if (pathParts.length >= 3) {
+                            int vendorId = Integer.valueOf(pathParts[0]); // 3273
+                            int siteId = Integer.valueOf(pathParts[1]); // 951
+                            int date = Integer.valueOf(pathParts[2]); // 20240509
+                            List<String> lines = null;
+                            try {
+                                lines = Files.readAllLines(file.toPath());
+                            } catch (IOException e) {
+                            }
+
+                            if (CollectionUtils.isNotEmpty(lines)) {
+                                int totalAmount = 0;
+                                int totalPay = 0;
+                                int all = 0;
+                                for (int k = 0; k < lines.size(); k++) {
 //vendorId+"-"+siteId+"||("+allPayCount+"-"+dayRechargeAmount+"-"+allIn+")||("+payCount+"-"+totalChargeAmount+"-"+totalIncome+")";
 
-                                                String line= lines.get(k);
+                                    String line = lines.get(k);
 
-                                                if(line.contains("||")){
-
-                                                  String v=line.split("\\|\\|")[2];
-                                                    if(k==0){
-                                                        String v1=line.split("\\|\\|")[1];
-                                                        String vs1[] = v1.replace("(","").replace(")","").split("-");
-                                                        all=Integer.valueOf(vs1[1]);
-                                                    }
-                                                    String vs[] = v.replace("(","").replace(")","").split("-");
-                                                    if (vs.length > 2) {
-                                                        totalPay += Integer.valueOf(vs[1]);
-                                                        totalAmount += Integer.valueOf(vs[2]);
-                                                    }
-                                                }else {//旧版本;
-                                                    if (line.contains("-")) {
-                                                        String v[] = line.split("-");
-                                                        if (v.length > 6) {
-                                                            totalPay += Integer.valueOf(v[6]);
-                                                            totalAmount += Integer.valueOf(v[7]);
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            if(totalPay>7600||totalAmount>7500) {
-                                                SITE_DATE_MAP
-                                                        .computeIfAbsent(vendorId, k -> new HashMap<>())
-                                                        .computeIfAbsent(siteId, k -> new HashSet<>())
-                                                        .add(date);
-                                            }
-                                            if(totalPay*3>all){
-                                                SITE_DATE_MAP
-                                                        .computeIfAbsent(vendorId, k -> new HashMap<>())
-                                                        .computeIfAbsent(siteId, k -> new HashSet<>())
-                                                        .add(date);
+                                    if(StringUtils.isBlank(line)){
+                                        continue;
+                                    }
+                                    if (line.contains("||")) {
+                                        String v = line.split("\\|\\|")[2];
+                                        if (k == 0) {
+                                            String v1 = line.split("\\|\\|")[1];
+                                            String vs1[] = v1.replace("(", "").replace(")", "").split("-");
+                                            all = Integer.valueOf(vs1[1]);
+                                        }
+                                        String vs[] = v.replace("(", "").replace(")", "").split("-");
+                                        if (vs.length > 2) {
+                                            totalPay += Integer.valueOf(vs[1]);
+                                            totalAmount += Integer.valueOf(vs[2]);
+                                        }
+                                    } else {//旧版本;
+                                        if (line.contains("-")) {
+                                            String v[] = line.split("-");
+                                            if (v.length > 6) {
+                                                totalPay += Integer.valueOf(v[6]);
+                                                totalAmount += Integer.valueOf(v[7]);
                                             }
                                         }
                                     }
                                 }
+
+                                if (totalPay > 7600 || totalAmount > 7500) {
+                                    SITE_DATE_MAP
+                                            .computeIfAbsent(vendorId, k -> new HashMap<>())
+                                            .computeIfAbsent(siteId, k -> new HashSet<>())
+                                            .add(date);
+                                }
+                                if (totalPay * 3 > all) {
+                                    SITE_DATE_MAP
+                                            .computeIfAbsent(vendorId, k -> new HashMap<>())
+                                            .computeIfAbsent(siteId, k -> new HashSet<>())
+                                            .add(date);
+                                }
                             }
                         }
                     }
-                    }
-                }
-            }
+                });
         System.out.println(SITE_DATE_MAP);
-        }
+    }
 
 
     @PostConstruct
@@ -185,4 +181,8 @@ public class DateCache {
             }
         }}
 
+    public static void main(String[] args) {
+        String []v=null;
+        Arrays.stream(v);
+    }
 }

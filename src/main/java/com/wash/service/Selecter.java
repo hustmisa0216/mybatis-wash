@@ -339,22 +339,6 @@ public class Selecter {
         long firstTime = System.currentTimeMillis() / 1000 - dayBefore * 24 * 60 * 60;
         int firstDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(firstTime * 1000)));
 
-//        if(franchiseeSiteTb.getParentPercent().doubleValue()>0){
-//            int parent=franchiseeSiteTb.getParentId();
-//            QueryWrapper<FaSettlementTb> faSettlementTbQueryWrapper = new QueryWrapper();
-//            faSettlementTbQueryWrapper.eq("site_id", franchiseeSiteTb.getSiteId())
-//                    .eq("own_id",parent);
-//            List<FaSettlementTb> faSettlementTbs=faSettlementTbMapper.selectList(faSettlementTbQueryWrapper);
-//            if(CollectionUtils.isNotEmpty(faSettlementTbs)){
-//                faSettlementTbs.sort(Comparator.comparingInt(FaSettlementTb::getDate));
-//                FaSettlementTb faSettlementTb=faSettlementTbs.get(0);
-//                int date=faSettlementTb.getDate();
-//                if(date>=firstDate){
-//                    firstDate=date;
-//                }
-//            }
-//        }
-
         dailyPaperTbQueryWrapper
                 .eq("site_id", franchiseeSiteTb.getSiteId())
                 .ge("date", firstDate)
@@ -409,7 +393,10 @@ public class Selecter {
         if(res==null){
             return dailyDatas;
         }
-        dailyDatas.add(new DailyData(res, getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), res.getDate())));
+       FaSettlementTb tmp= getFaSettlementTb(inputVendorId, franchiseeSiteTb.getSiteId(), res.getDate());
+        if(tmp!=null){
+            dailyDatas.add(new DailyData(res,tmp ));
+        }
         return dailyDatas;
     }
 

@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -401,21 +400,21 @@ public class ChargeSelector {
         int maxDiff = 0;
 
         if (decData / 2500 == 0) {
-            maxDiff = 800;
+            maxDiff = 600;
         } else if (decData/ 4000 == 0) {
-            maxDiff = 1100;
+            maxDiff = 900;
         } else if (decData/ 7000 == 0) {
-            maxDiff = 1400;
+            maxDiff = 1200;
         } else if (decData/ 10000 == 0) {
-            maxDiff = 1800;
+            maxDiff = 1500;
         } else if (decData/ 15000 == 0) {
-            maxDiff = 2300;
+            maxDiff = 2000;
         } else if (decData/ 20000 == 0) {
-            maxDiff = 2800;
+            maxDiff = 2300;
         } else if (decData/ 25000 == 0) {
-            maxDiff = 3300;
+            maxDiff = 3000;
         } else {
-            maxDiff = 4000;
+            maxDiff = 3600;
         }
         return maxDiff;
     }
