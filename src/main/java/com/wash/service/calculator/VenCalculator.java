@@ -151,14 +151,14 @@ public class VenCalculator {
     }
 
     public int fromVen(int ven){
-        Set<Integer> set1 = Arrays.stream("3225,3191,3433,3353,3243,3250,3203,3229,3024".split(","))
+        Set<Integer> set1 = Arrays.stream("3225,3191,3433,3243,3250,3203,3229,3024".split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set2 = Arrays.stream(("3190,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3287,3283,3382,3223,3100,3166,3114" +
+        Set<Integer> set2 = Arrays.stream(("3221,3190,3353,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3287,3283,3382,3223,3100,3166,3114" +
                         "").split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3325,3215,3117,3230,3248,3221,3392,3260," +
+        Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3325,3215,3117,3230,3248,3392,3260," +
                         "3266,3231,3114,3351,3411,3188,3168,3310,3297,3313,3194,3083,8,3066").split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
@@ -168,7 +168,7 @@ public class VenCalculator {
 
 
         if(set1.contains(ven)){
-            return 2;
+            return 1;
         }else if(set2.contains(ven)){
             return 3;
         }else if(set3.contains(ven)){

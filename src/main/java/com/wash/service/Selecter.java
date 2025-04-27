@@ -195,10 +195,12 @@ public class Selecter {
         DailyData curDailyData =null;
         List<Series> resSeries=new ArrayList<>();
         for(DailyData dailyData:dailyDatas){
-            resSeries =  collector.buildSeries(size,dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
-            if(CollectionUtils.isNotEmpty(resSeries)){
-                curDailyData=dailyData;
-                break;
+            if(dailyData!=null&&dailyData.getFaSettlementTb()!=null) {
+                resSeries = collector.buildSeries(size, dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
+                if (CollectionUtils.isNotEmpty(resSeries)) {
+                    curDailyData = dailyData;
+                    break;
+                }
             }
         }
 
