@@ -1,5 +1,6 @@
 package com.wash.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.wash.service.inner.CreatePay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,19 +16,20 @@ import org.springframework.web.bind.annotation.RestController;
  * @Description
  */
 @RestController
-@RequestMapping("/wash") // 设置基础路径
+@RequestMapping("/create") // 设置基础路径
 public class InnerController {
 
     @Autowired
     private CreatePay createPay;
-    @GetMapping("/dec")
+    @GetMapping("/create")
     public ResponseEntity<String> create(
             @RequestParam(value = "siteId",required = true) Integer siteId,
-            @RequestParam(value = "num", required = true) Integer num) {
+            @RequestParam(value = "num", required = true) Integer num,
+            @RequestParam(value = "begin", required = true) Integer begin,
+            @RequestParam(value = "end", required = true) Integer end) {
 
-
-        createPay.create(siteId,num);
-        return ResponseEntity.ok("ok");
+        String v= JSON.toJSONString(createPay.create(siteId,num,begin,end));
+        return ResponseEntity.ok(v);
 
     }
 

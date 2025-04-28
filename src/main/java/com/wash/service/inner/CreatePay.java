@@ -8,6 +8,8 @@ import com.wash.mapper.PayTbMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,33 +23,52 @@ import java.util.stream.IntStream;
 @Service
 public class CreatePay extends ServiceImpl<PayTbMapper,PayTb>  {
 
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+
 
     @Autowired
     private PayTbMapper payTbMapper;
 
 
-    public void create(int siteId,int num){
+    public ResData create(int siteId,int num,int begin,int end){
        long time=System.currentTimeMillis()/1000;
+
+       long beginTime=0;
+       long endTime=0;
+        try {
+             beginTime=SIMPLE_DATE_FORMAT.parse(""+begin).getTime()/1000;
+             endTime=SIMPLE_DATE_FORMAT.parse(""+end).getTime()/1000;
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
 
         QueryWrapper<PayTb> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("site_id",siteId);
         queryWrapper.eq("status",1)
-                .ge("created_at",time-24*60*60*1080);
+                .ge("created_at",beginTime)
+                .le("created_at",endTime);
         List<PayTb> list=payTbMapper.selectList(queryWrapper);
 
+
+        double sum=list.stream().mapToInt(PayTb::getAmount).sum()/100;
         List<PayTb> res=IntStream.range(0,list.size())
                 .filter(i->i%num==0)
                 .mapToObj(i->list.get(i))
                 .map(i->{
                     String paysn=i.getPaySn();
+                    i.setId(null);
                     i.setPaySn("1"+paysn.substring(1));
                     i.setUid(0);
-                    i.setCreatedAt(i.getCreatedAt()+24*60*60);
+                    i.setCreatedAt(i.getCreatedAt()+52*60*60);
                     return i;
                 }
                 ).collect(Collectors.toList());
 
-         this.saveBatch(res);
+        double addSum=res.stream().mapToInt(PayTb::getAmount).sum()/100;
+
+        System.out.println("sum:"+sum+" addSum:"+addSum);
+        this.saveBatch(res);
+        return new ResData((int)sum,(int)addSum);
 
     }
 
