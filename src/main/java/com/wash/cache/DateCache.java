@@ -96,21 +96,21 @@ public class DateCache {
 
                                 if (totalPay > 7600 || totalAmount > 7500) {
                                     SITE_DATE_MAP
-                                            .computeIfAbsent(vendorId, k -> new HashMap<>())
-                                            .computeIfAbsent(siteId, k -> new HashSet<>())
-                                            .add(date);
+                                            .computeIfAbsent(Integer.valueOf(vendorId), k -> new HashMap<>())
+                                            .computeIfAbsent(Integer.valueOf(siteId), k -> new HashSet<>())
+                                            .add(Integer.valueOf(date));
                                 }
                                 if (totalPay * 3 > all) {
                                     SITE_DATE_MAP
-                                            .computeIfAbsent(vendorId, k -> new HashMap<>())
-                                            .computeIfAbsent(siteId, k -> new HashSet<>())
-                                            .add(date);
+                                            .computeIfAbsent(Integer.valueOf(vendorId), k -> new HashMap<>())
+                                            .computeIfAbsent(Integer.valueOf(siteId), k -> new HashSet<>())
+                                            .add(Integer.valueOf(date));
                                 }
                             }
                         }
                     }
                 });
-        System.out.println(SITE_DATE_MAP);
+       // System.out.println(SITE_DATE_MAP);
     }
 
 
@@ -169,8 +169,8 @@ public class DateCache {
 
                                         if (totalCount > 5 || totalAmount > 5800) {
                                             C_DATE_MAP
-                                                    .computeIfAbsent(vendorId, k -> new HashSet<>())
-                                                    .add(date);
+                                                    .computeIfAbsent(Integer.valueOf(vendorId), k -> new HashSet<>())
+                                                    .add(Integer.valueOf(date));
                                         }
                                     }
                                 }

@@ -15,11 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
  * @Description
  */
 @RestController
-@RequestMapping("/wash") // 设置基础路径
+@RequestMapping("/inner") // 设置基础路径
 public class InnerController {
 
     @Autowired
     private CreatePay createPay;
+
     @GetMapping("/dec")
     public ResponseEntity<String> create(
             @RequestParam(value = "siteId",required = true) Integer siteId,
