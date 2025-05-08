@@ -205,6 +205,7 @@ public class Selecter {
             }
         }
 
+
         if (CollectionUtils.isEmpty(resSeries)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + JSON.toJSONString(dailyDatas) + "-未获取到任何条目\n");
             countDownLatch.countDown();

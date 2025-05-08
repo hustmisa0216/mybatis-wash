@@ -149,7 +149,6 @@ public class Start {
                         });
                     }
 
-                    //结算完毕
                     List<OrdersTb> ordersTbs = collector.fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType, expireTime, commodityOrderId);
 
                     if (CollectionUtils.isNotEmpty(ordersTbs)) {

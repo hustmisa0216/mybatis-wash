@@ -263,7 +263,7 @@ public class Collector {
 
 
             QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
-            commodityOrderProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
+            commodityOrderProfitSharingTbQueryWrapper
                     .eq("order_id", commodityOrderTb.getOrderId());
             List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = commodityOrderProfitSharingTbMapper.selectList(commodityOrderProfitSharingTbQueryWrapper);
             if (commodityOrderProfitSharingTbs == null || commodityOrderProfitSharingTbs.size() == 0) {
@@ -290,7 +290,7 @@ public class Collector {
                 commodityOrderId = commodityOrderTb.getOrderId();
             }
             //结算完毕
-            if (orderProfit.getSum() == payTb.getAmount() || expireTime <= System.currentTimeMillis() / 1000) {
+            if (orderProfit.getSum() == payTb.getAmount().intValue() || expireTime <= System.currentTimeMillis() / 1000) {
                 List<OrdersTb> ordersTbs = fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType,
                         expireTime, commodityOrderId);
                 if (CollectionUtils.isNotEmpty(ordersTbs)) {
@@ -338,11 +338,15 @@ public class Collector {
                                       DeliveryMethodType deliveryMethodType, Long expireTime,
                                       String commodityOrderId) {
         QueryWrapper<OrdersTb> ordersTbQueryWrapper = new QueryWrapper<>();
+        //这里不能有site
         ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
                 .ge("created_at", commodityOrderTb.getCreatedAt())
-                .eq("site_id", commodityOrderTb.getSiteId())
                 .eq(StringUtils.isNotEmpty(commodityOrderId), "commodity_order_id", commodityOrderId);
         List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
+        if(CollectionUtils.isEmpty(ordersTbs)){
+            return null;
+        }
+        ordersTbs.sort((a,b)-> (int) (b.getCreatedAt()-a.getCreatedAt()));
 
         final long exp = expireTime;
         List<OrdersTb> lastOrders = new ArrayList<>();
@@ -357,17 +361,19 @@ public class Collector {
             }
         }
 
+
+        long start=commodityOrderProfitSharingTbs.get(0).getCreatedAt()-90*60;
+        long end=commodityOrderProfitSharingTbs.get(commodityOrderProfitSharingTbs.size()-1).getCreatedAt()+15*60;
+
         List<OrdersTb> resOrdersTbs = new ArrayList<>();
         //次卡是否都是一次？
         if (ordersTbs != null && ordersTbs.size() > 0) {
             if (deliveryMethodType == DeliveryMethodType.COUPON_WASHING || deliveryMethodType == DeliveryMethodType.PER_USE_CARD) {
                 resOrdersTbs.add(ordersTbs.get(0));
             } else if (deliveryMethodType == DeliveryMethodType.PREPAID) {
-                if (ordersTbs.size() >= commodityOrderProfitSharingTbs.size()) {
-                    resOrdersTbs.addAll(ordersTbs.subList(0, commodityOrderProfitSharingTbs.size()));
-                } else {
-                    resOrdersTbs.addAll(ordersTbs);
-                }
+               List<OrdersTb> preOrders= ordersTbs.stream().filter(i -> i.getCreatedAt() >= start && i.getCreatedAt() <= end)
+                       .collect(Collectors.toList());
+               resOrdersTbs.addAll(preOrders);
             } else if (deliveryMethodType == DeliveryMethodType.VIP_TIME || deliveryMethodType == DeliveryMethodType.PREPAID_SUIT) {
                 List<OrdersTb> vipOrders = ordersTbs.stream().filter(i -> i.getCreatedAt() <= exp).collect(Collectors.toList());
                 resOrdersTbs.addAll(vipOrders);
@@ -393,8 +399,8 @@ public class Collector {
 
     private boolean filleVpf( Integer inputVendorId, Series series, PayTb payTb, List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs) {
         QueryWrapper<VendorProfitSharingTb> vendorProfitSharingTbQueryWrapper = new QueryWrapper<>();
-        vendorProfitSharingTbQueryWrapper.eq("site_id", payTb.getSiteId())
-                .eq("type", 1)
+        //不能限制场，也不能type，跨会有负
+        vendorProfitSharingTbQueryWrapper
                 .in("transaction_id", commodityOrderProfitSharingTbs.stream().map(i -> i.getTransactionId()).collect(Collectors.toList()));
 
         List<VendorProfitSharingTb> vendorProfitSharingTbs = vendorProfitSharingTbMapper.selectList(vendorProfitSharingTbQueryWrapper);
