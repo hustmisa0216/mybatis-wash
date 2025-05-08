@@ -1,6 +1,7 @@
 package com.wash.service.calculator;
 
 import com.wash.entity.DecData;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
     @Component
 public class VenCalculator {
 
+    private static final LinkedHashMap<Integer,Integer> proportion_map0=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map1=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map2=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map3=new LinkedHashMap<>();
@@ -35,6 +37,23 @@ public class VenCalculator {
 
     @PostConstruct
     public void fillMap(){
+
+        proportion_map0.put(70, 3);
+        proportion_map0.put(160, 4);
+        proportion_map0.put(240, 5);
+        proportion_map0.put(310, 6);
+        proportion_map0.put(430, 7);
+        proportion_map0.put(560, 8);
+        proportion_map0.put(700, 9);
+        proportion_map0.put(940, 10);
+        proportion_map0.put(1200, 11);
+        proportion_map0.put(1530, 12);
+        proportion_map0.put(1960, 13);
+        proportion_map0.put(2600, 14);
+        proportion_map0.put(3200, 15);
+        // 对于大于3200的情况，使用默认值
+        proportion_map0.put(Integer.MAX_VALUE, 16);
+        
         // 初始化proportion_map1
         proportion_map1.put(80, 3);
         proportion_map1.put(140, 4);
@@ -121,6 +140,7 @@ public class VenCalculator {
         // 对于大于3200的情况，使用默认值
         proportion_map5.put(Integer.MAX_VALUE, 22);
 
+        categoryMap.put(0, proportion_map0);
         categoryMap.put(1, proportion_map1);
         categoryMap.put(2, proportion_map2);
         categoryMap.put(3, proportion_map3);
@@ -151,32 +171,48 @@ public class VenCalculator {
     }
 
     public int fromVen(int ven){
-        Set<Integer> set1 = Arrays.stream("3225,3191,3433,3243,3250,3203,3229,3024".split(","))
+        Set<Integer> set0 = Arrays.stream("3225,3191".split(","))
+                .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set2 = Arrays.stream(("3221,3190,3353,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3287,3283,3382,3223,3100,3166,3114" +
+        Set<Integer> set1 = Arrays.stream("3287,3433,3243,3250,3203,3229,3024".split(","))
+                .filter(i->StringUtils.isNumeric(i))
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+        Set<Integer> set2 = Arrays.stream(("3221,3190,3353,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3283,3382,3223,3100,3166,3114" +
                         "").split(","))
+                .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
         Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3325,3215,3117,3230,3248,3392,3260," +
                         "3266,3231,3114,3351,3411,3188,3168,3310,3297,3313,3194,3083,8,3066").split(","))
+                .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
         Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3422,3434".split(","))
+                .filter(i->StringUtils.isNumeric(i))
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+        Set<Integer> set5 = Arrays.stream("".split(","))
+                .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
 
-
-        if(set1.contains(ven)){
+        if (set0.contains(ven)) {
+            return 0;
+        }
+        if (set1.contains(ven)) {
             return 1;
-        }else if(set2.contains(ven)){
+        } else if (set2.contains(ven)) {
+            return 2;
+        } else if (set3.contains(ven)) {
             return 3;
-        }else if(set3.contains(ven)){
+        } else if (set4.contains(ven)) {
             return 4;
-        }else if(set4.contains(ven)){
+        } else if (set5.contains(ven)) {
             return 5;
         }
-        return 4;//默认类别
+        return 3;//默认类别
     }
 
     //根据选定history 的计算额度

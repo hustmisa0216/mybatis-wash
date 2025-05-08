@@ -90,7 +90,7 @@ public class Selecter {
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
 
         if(franchiseeTb.getWaitWithdraw()<1390*100){
-            LOGGER.info("{},太低导致无线路可用:{}",inputVendorId,franchiseeTb.getWaitWithdraw()/100);
+            LOGGER.info("res,{},太低导致无线路可用:{}",inputVendorId,franchiseeTb.getWaitWithdraw()/100);
             return "无路线可用";
         }
         //每个场地单独处理
@@ -137,6 +137,7 @@ public class Selecter {
         TodayData todayData = null;
         List<DailyData> dailyDatas = new ArrayList<>();
 
+        double amount=0;
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
             if (todayData == null) {
@@ -158,7 +159,7 @@ public class Selecter {
                         decMerge= (int) ((lastDayRecharge + 2*lastDayEar) / 3);
                     }
                     int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge:decMerge;
-                    double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
+                    amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
 
@@ -166,7 +167,7 @@ public class Selecter {
                 if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 11400 || lastDayEar > 8200)) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
                     int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + lastDayEar) / 2);
-                    double amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
+                    amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
             }
@@ -184,7 +185,7 @@ public class Selecter {
         }
 
         if (CollectionUtils.isEmpty(dailyDatas)) {
-            LOGGER.info("{},{},{}", inputVendorId, franchiseeSiteTb.getSiteId(), "未找到合适日期");
+            LOGGER.info("res,{},{},{}", inputVendorId, franchiseeSiteTb.getSiteId(), "未找到合适日期");
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + "未找到合适日期\n");
             countDownLatch.countDown();
             return;
@@ -228,7 +229,7 @@ public class Selecter {
         boolean major= franchiseeSiteTb.getOwnPercent().doubleValue()> franchiseeSiteTb.getParentPercent().doubleValue();
         DrawFilter.LessReason lessReason =drawCalculator.drawCalculate(inputVendorId, franchiseeTb,major);
         if(!lessReason.isValid()){
-            LOGGER.info("{},{},lessReason:{}", inputVendorId,franchiseeSiteTb.getSiteId(),lessReason.getReason());
+            LOGGER.info("res,{},{},lessReason:{}", inputVendorId,franchiseeSiteTb.getSiteId(),lessReason.getReason());
             res.append(franchiseeTb.getId() +  "-"+lessReason.getReason()+"-" + "rest lesssssss\n");
             return true;
         }
@@ -239,13 +240,13 @@ public class Selecter {
         if(parentId!=-1){
             boolean allSame=resSeries.stream().allMatch(i->i.getParentVen()==parentId);
             if(!allSame){
-                LOGGER.info("{},{},lessReasonNotSame:{},{}", inputVendorId,franchiseeSiteTb.getSiteId(),parentId,resSeries);
+                LOGGER.info("res,{},{},lessReasonNotSame:{},{}", inputVendorId,franchiseeSiteTb.getSiteId(),parentId,resSeries);
                 return true;
             }
             FranchiseeTb parentFranchiseeSiteTb = franchiseeTbMapper.selectById(parentId);
             DrawFilter.LessReason parentLess = drawCalculator.drawCalculate(parentId, parentFranchiseeSiteTb, !major);
             if (!parentLess.isValid()) {
-                LOGGER.info("{},{},lessReasonBecParent:{}:{}", inputVendorId,franchiseeSiteTb.getSiteId(), parentId, lessReason.getReason());
+                LOGGER.info("res,{},{},lessReasonBecParent:{}:{}", inputVendorId,franchiseeSiteTb.getSiteId(), parentId, lessReason.getReason());
                 res.append(parentFranchiseeSiteTb.getId() + "-" + parentLess.getReason() + "-" + "parentRest lesssssss\n");
                 return true;
             }
@@ -427,7 +428,7 @@ public class Selecter {
         calendar.setTimeInMillis(time);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         String sDate = "";
-        if (hour < 6) {
+        if (hour < 11) {
             sDate = SIMPLE_DATE_FORMAT.format(new Date(time - 24 * 60 * 60 * 1000));//如果是凌晨需要取前一天的日期
         } else {
             sDate = SIMPLE_DATE_FORMAT.format(new Date(time));

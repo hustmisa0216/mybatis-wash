@@ -115,7 +115,7 @@ public class Collector {
 //        } else {
         List<Series> list =collectSeries(originSeries, franchiseeSiteTb, inputVendorId, inputDecAmount);
         if(CollectionUtils.isEmpty(list)&&sum>120*100){
-            LOGGER.info("未收集到：{},{},{},{},{}",inputVendorId,franchiseeSiteTb.getSiteId(),faSettlementTb.getDate(),decData.getDecAmount(),decData.getSum());
+            LOGGER.info("未收集到：res,{},{},{},{},{}",inputVendorId,franchiseeSiteTb.getSiteId(),faSettlementTb.getDate(),decData.getDecAmount(),decData.getSum());
         }
         seriesList = filterSeriesByAmount(list, decData);
 

@@ -9,6 +9,7 @@ import lombok.Data;
 public class PayTb {
     @TableId(type = IdType.AUTO)
     private Integer id; // 用户ID
+
     private Integer uid; // 用户ID
     private String paySn; // 订单号
     private String agreementSn; // 周期扣款订单号

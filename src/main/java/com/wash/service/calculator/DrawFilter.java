@@ -85,7 +85,7 @@ public class DrawFilter {
         calendar.add(Calendar.DAY_OF_MONTH, -1);//当月最后一天
         int lastDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 
-        if(currentDay>lastDayOfMonth-3&&diff<24*30){
+        if(currentDay>lastDayOfMonth-3&&diff<30){
            return new LessReason("月末3天以内",false);
         }
 
