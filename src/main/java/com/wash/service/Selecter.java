@@ -206,6 +206,16 @@ public class Selecter {
         }
 
 
+        Thread.sleep(10000);
+        Thread.sleep(100000);
+        Thread.sleep(1000000);
+        Thread.sleep(1000000);
+        System.out.println("----------------------------------");
+        Thread.sleep(1000000);
+
+
+
+
         if (CollectionUtils.isEmpty(resSeries)) {
             res.append(inputVendorId + "-" + franchiseeSiteTb.getSiteId() + "-" + JSON.toJSONString(dailyDatas) + "-未获取到任何条目\n");
             countDownLatch.countDown();

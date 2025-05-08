@@ -247,9 +247,9 @@ public class Collector {
             }
             List<PayTb> userPays=fillUserPay(series,payTb);
 
-            List<PayTb> afters=userPays.stream().filter(i->i.getCreatedAt()>payTb.getCreatedAt()).collect(Collectors.toList());
+            List<PayTb> others=userPays.stream().filter(i->i.getCreatedAt()!=payTb.getCreatedAt()).collect(Collectors.toList());
             //如果后续没有且用户最近没用，会导致该用户被清空，如果长期不用就无所谓。
-            if(CollectionUtils.isEmpty(afters)&&(System.currentTimeMillis()/1000)-payTb.getCreatedAt()<24*60*60*178){
+            if(CollectionUtils.isEmpty(others)&&(System.currentTimeMillis()/1000)-payTb.getCreatedAt()<24*60*60*178){
                 countDownLatch.countDown();
                 return;
             }
@@ -380,8 +380,8 @@ public class Collector {
             }
         }
 
-        ordersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
-        return ordersTbs;
+        resOrdersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
+        return resOrdersTbs;
     }
 
     private CommodityOrdersTb fillCO(Series series, PayTb payTb) {
