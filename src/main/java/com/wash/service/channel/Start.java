@@ -4,6 +4,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wash.entity.constants.DeliveryMethodType;
+import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.CommodityOrderProfitSharingTb;
 import com.wash.entity.data.CommodityOrdersTb;
 import com.wash.entity.data.OrdersTb;
@@ -13,15 +14,17 @@ import com.wash.mapper.*;
 import com.wash.mapper.channel.ChannelSiteTbMapper;
 import com.wash.mapper.channel.ChannelTbMapper;
 import com.wash.service.Collector;
-import com.wash.service.Selecter;
 import com.wash.service.channel.entity.CAmount;
 import com.wash.service.channel.entity.ChannelSiteTb;
 import com.wash.service.channel.entity.ChannelTb;
+import com.wash.service.channel.entity.OrderEntity;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -39,7 +42,8 @@ import java.util.stream.IntStream;
 public class Start {
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
-    @Autowired
+    @Autowired    public  static final String FILE_PATH = "D:\\mogo\\channel\\";
+
     private ChannelSiteTbMapper channelSiteTbMapper;
     @Autowired
     private OrdersTbMapper ordersTbMapper;
@@ -63,11 +67,14 @@ public class Start {
     @Autowired
     private Collector collector;
 
-    public String start(int channelId, int startDate, int endDate) throws ParseException {
+    public String start(int channelId, int startDate, int endDate) throws ParseException, IOException {
         QueryWrapper<ChannelSiteTb> channelSiteTbQueryWrapper = new QueryWrapper<>();
         channelSiteTbQueryWrapper.eq("channel_id", channelId).isNull("deleted_at");
         List<ChannelSiteTb> channelSiteTbList = channelSiteTbMapper.selectList(channelSiteTbQueryWrapper);
 
+
+        FileWriter commoOrderWriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.COMMODITY_ORDER_DATA.getFileName(), true);
+        FileWriter orderWriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.ORDERSTB_DATA.getFileName(), true);
 
         List<Integer> siteIds;
         if (CollectionUtils.isEmpty(channelSiteTbList)) {
@@ -89,11 +96,14 @@ public class Start {
         for (int siteId : siteIds) {
             QueryWrapper<CommodityOrdersTb> commodityOrdersTbQueryWrapper = new QueryWrapper<>();
             commodityOrdersTbQueryWrapper.eq("site_id", siteId).ge("created_at", dateTimeStart).le("created_at", dateTimeEnd);
-            List<CommodityOrdersTb> commodityOrdersTbs = commodityOrdersTbMapper.selectList(commodityOrdersTbQueryWrapper);
-            commodityOrdersTbs.stream().forEach(i -> dateGenerator.generateDate(i));
-            Map<Integer, List<CommodityOrdersTb>> commodityDateMap = commodityOrdersTbs.stream().collect(Collectors.groupingBy(CommodityOrdersTb::getDate));
+            List<CommodityOrdersTb> commodityOrders = commodityOrdersTbMapper.selectList(commodityOrdersTbQueryWrapper);
 
-            Map<Integer, List<CommodityOrdersTb>> resMap = commodityDateMap.entrySet()
+            List<OrderEntity> res=filterCommodityOrdersTb(commodityOrders,siteIds);
+
+            res.stream().forEach(i -> dateGenerator.generateDate(i.getCommodityOrdersTb()));
+            Map<Integer, List<OrderEntity>> commodityDateMap = res.stream().collect(Collectors.groupingBy(orderEntity -> orderEntity.getCommodityOrdersTb().getDate()));
+
+            Map<Integer, List<OrderEntity>> resMap = commodityDateMap.entrySet()
                     .stream().collect(Collectors.toMap(Map.Entry::getKey, // 保留原来的键
                     entry -> IntStream.range(0, entry.getValue().size()) // 获取索引范围
                             .filter(i -> i % 2 == 0 || i % 5 == 0) // 过滤出索引为 3 的倍数
@@ -101,64 +111,30 @@ public class Start {
                             .collect(Collectors.toList()) // 收集为列表
             ));
 
-
             Map<Integer, CAmount> cAmountMap = new HashMap<>();
 
             List<CommodityOrdersTb> allCommodityOrdersTbList = new ArrayList<>();
             List<OrdersTb> allOrders = new ArrayList<>();
 
             for (int date : resMap.keySet()) {
-                List<CommodityOrdersTb> commodityOrdersTbList = resMap.get(date);
+                List<OrderEntity> orderEntities = resMap.get(date);
 
-                for (CommodityOrdersTb commodityOrderTb : commodityOrdersTbList) {
-                    QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
-                    commodityOrderProfitSharingTbQueryWrapper.in("site_id", siteIds)
-                            .eq("order_id", commodityOrderTb.getOrderId());
-                    List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = commodityOrderProfitSharingTbMapper.selectList(commodityOrderProfitSharingTbQueryWrapper);
-
-                    if (CollectionUtils.isEmpty(commodityOrderProfitSharingTbs)) {
-                        continue;
-                    }
-
-                    double sum=commodityOrderProfitSharingTbs.stream().mapToDouble(CommodityOrderProfitSharingTb::getRechargeAmount).sum();
-                    if(commodityOrderTb.getPaymentMoney().intValue()!=sum){
-                        continue;
-                    }
-
-                    commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
+                for (OrderEntity orderEntity : orderEntities) {
+                    allCommodityOrdersTbList.add(orderEntity.getCommodityOrdersTb());
+                    allOrders.addAll(orderEntity.getOrdersTbs());
+                    List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = orderEntity.getCommodityOrderProfitSharingTbs();
                     DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
-
-                    //结算额度
-                    Long expireTime = commodityOrderTb.getVipExpiredAt() == 0 ? commodityOrderTb.getPrepaidExpiredAt() : commodityOrderTb.getVipExpiredAt();
-                    if (expireTime == 0) {
-                        expireTime = commodityOrderTb.getCreatedAt() + commodityOrderTb.getCouponDuration();
-                    }
-
-                    String commodityOrderId = null;
                     if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
-                        commodityOrderId = commodityOrderTb.getOrderId();
-                    }
-
-                    if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
-                        commodityOrderProfitSharingTbs.stream().forEach(i -> {
-                            cAmountMap.computeIfAbsent(i.getDate(), k -> new CAmount()).getVipAmount().addAndGet(i.getRechargeAmount());
-                        });
+                        commodityOrderProfitSharingTbs.stream().forEach(i -> cAmountMap.computeIfAbsent(i.getDate(), k -> new CAmount())
+                                .getVipAmount().addAndGet(i.getRechargeAmount()));
                     } else {
-                        commodityOrderProfitSharingTbs.stream().forEach(i -> {
-                            cAmountMap.computeIfAbsent(i.getDate(), k -> new CAmount()).getPreAmount().addAndGet(i.getRechargeAmount());
-                        });
+                        commodityOrderProfitSharingTbs.stream().forEach(i -> cAmountMap.computeIfAbsent(i.getDate(), k -> new CAmount())
+                                .getPreAmount().addAndGet(i.getRechargeAmount()));
                     }
 
-                    List<OrdersTb> ordersTbs = collector.fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType, expireTime, commodityOrderId);
-
-                    if (CollectionUtils.isNotEmpty(ordersTbs)) {
-                        allOrders.addAll(ordersTbs);
-                        allCommodityOrdersTbList.add(commodityOrderTb);
-                    }
                 }
             }
 
-            boolean g=true;
             for (int date : cAmountMap.keySet()) {
                 CAmount cAmount = cAmountMap.get(date);
                 if (cAmount.getPreAmount().get() == 0 && cAmount.getPreAmount().get() == 0) {
@@ -170,19 +146,19 @@ public class Start {
                         .eq("date", date);
                 List<EnsureIncomeTb> ensureIncomeTbs=ensureIncomeTbMapper.selectList(queryWrapper);
                 if(CollectionUtils.isEmpty(ensureIncomeTbs)){
-                    g=false;
+                    cAmountMap.remove(date);
                 }else{
                     double sum=ensureIncomeTbs.stream().mapToDouble(EnsureIncomeTb::getPrepaidMoney).sum();
                     double sumvip=ensureIncomeTbs.stream().mapToDouble(EnsureIncomeTb::getVipMoney).sum();
-                    if(sum<cAmount.getPreAmount().get()||sumvip<cAmount.getVipAmount().get()){
-                        g=false;
+                    if(sum<cAmount.getPreAmount().get()){
+                        cAmountMap.remove(date);
+                    }
+                    if(sumvip<cAmount.getVipAmount().get()){
+                        cAmountMap.remove(date);
                     }
                 }
             }
 
-            if(!g){
-                continue;
-            }
 
             for (int date : cAmountMap.keySet()) {
                 CAmount cAmount = cAmountMap.get(date);
@@ -198,14 +174,72 @@ public class Start {
                 ensureIncomeTbMapper.update(null, ensureIncomeTbQueryWrapper);
             }
 
+
             if (CollectionUtils.isNotEmpty(allCommodityOrdersTbList)) {
+                allCommodityOrdersTbList.stream().forEach(i -> {
+                    try {
+                        commoOrderWriter.write(i.toString() + "\n");
+                        commoOrderWriter.flush();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                });
                 commodityOrdersTbMapper.deleteBatchIds(allCommodityOrdersTbList);
             }
             if (CollectionUtils.isNotEmpty(allOrders)) {
+                allOrders.stream().forEach(i -> {
+                    try {
+                        orderWriter.write(i.toString() + "\n");
+                        orderWriter.flush();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                });
                 ordersTbMapper.deleteBatchIds(allOrders);
             }
         }
         return null;
+    }
+
+    private List<OrderEntity> filterCommodityOrdersTb(List<CommodityOrdersTb> commodityOrdersTbs, List<Integer> siteIds) {
+
+        List<OrderEntity> res=new ArrayList<>();
+        for(CommodityOrdersTb commodityOrderTb: commodityOrdersTbs) {
+
+            QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
+            commodityOrderProfitSharingTbQueryWrapper.in("site_id", siteIds)
+                    .eq("order_id", commodityOrderTb.getOrderId());
+            List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = commodityOrderProfitSharingTbMapper.selectList(commodityOrderProfitSharingTbQueryWrapper);
+
+            if (CollectionUtils.isEmpty(commodityOrderProfitSharingTbs)) {
+                continue;
+            }
+
+            double sum = commodityOrderProfitSharingTbs.stream().mapToDouble(CommodityOrderProfitSharingTb::getRechargeAmount).sum();
+
+
+            commodityOrderProfitSharingTbs.stream().forEach(i -> dateGenerator.generateDate(i));
+            DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
+
+            //结算额度
+            Long expireTime = commodityOrderTb.getVipExpiredAt() == 0 ? commodityOrderTb.getPrepaidExpiredAt() : commodityOrderTb.getVipExpiredAt();
+            if (expireTime == 0) {
+                expireTime = commodityOrderTb.getCreatedAt() + commodityOrderTb.getCouponDuration();
+            }
+
+            String commodityOrderId = null;
+            if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
+                commodityOrderId = commodityOrderTb.getOrderId();
+            }
+
+            if (commodityOrderTb.getPaymentMoney().intValue() == sum || expireTime < System.currentTimeMillis() / 1000 - 60 * 60 * 24 * 9) {
+                List<OrdersTb> ordersTbs = collector.fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType, expireTime, commodityOrderId);
+                if (CollectionUtils.isNotEmpty(ordersTbs)) {
+                    res.add(new OrderEntity(commodityOrderTb, commodityOrderProfitSharingTbs, ordersTbs));
+                }
+            }
+        }
+            return res;
     }
 
     public String clean(int channelId, int startDate, int endDate) throws Exception {

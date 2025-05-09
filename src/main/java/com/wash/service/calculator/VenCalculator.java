@@ -39,27 +39,27 @@ public class VenCalculator {
     public void fillMap(){
 
         proportion_map0.put(70, 3);
-        proportion_map0.put(160, 4);
-        proportion_map0.put(240, 5);
-        proportion_map0.put(310, 6);
-        proportion_map0.put(430, 7);
+        proportion_map0.put(160, 5);
+        proportion_map0.put(240, 6);
+        proportion_map0.put(310, 7);
+        proportion_map0.put(430, 8);
         proportion_map0.put(560, 8);
-        proportion_map0.put(700, 9);
-        proportion_map0.put(940, 10);
-        proportion_map0.put(1200, 11);
-        proportion_map0.put(1530, 12);
-        proportion_map0.put(1960, 13);
+        proportion_map0.put(750, 9);
+        proportion_map0.put(980, 10);
+        proportion_map0.put(1270, 11);
+        proportion_map0.put(1580, 12);
+        proportion_map0.put(1980, 13);
         proportion_map0.put(2600, 14);
         proportion_map0.put(3200, 15);
         // 对于大于3200的情况，使用默认值
         proportion_map0.put(Integer.MAX_VALUE, 16);
         
         // 初始化proportion_map1
-        proportion_map1.put(80, 3);
-        proportion_map1.put(140, 4);
-        proportion_map1.put(210, 5);
-        proportion_map1.put(280, 6);
-        proportion_map1.put(400, 7);
+        proportion_map1.put(80, 4);
+        proportion_map1.put(140, 5);
+        proportion_map1.put(210, 6);
+        proportion_map1.put(280, 7);
+        proportion_map1.put(400, 8);
         proportion_map1.put(510, 8);
         proportion_map1.put(630, 9);
         proportion_map1.put(820, 10);
@@ -189,11 +189,11 @@ public class VenCalculator {
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3422,3434".split(","))
+        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3434".split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set5 = Arrays.stream("".split(","))
+        Set<Integer> set5 = Arrays.stream("3422".split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
