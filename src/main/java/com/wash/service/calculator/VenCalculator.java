@@ -179,17 +179,17 @@ public class VenCalculator {
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set2 = Arrays.stream(("3221,3190,3353,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3283,3382,3223,3100,3166,3114" +
+        Set<Integer> set2 = Arrays.stream(("3265,3221,3190,3353,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3283,3382,3223,3100,3166,3114" +
                         "").split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3325,3215,3117,3230,3248,3392,3260," +
+        Set<Integer> set3 = Arrays.stream(("3291,3434,3073,3160,3089,3033,3325,3215,3117,3230,3248,3392,3260," +
                         "3266,3231,3114,3351,3411,3188,3168,3310,3297,3313,3194,3083,8,3066").split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3434".split(","))
+        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3044".split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
