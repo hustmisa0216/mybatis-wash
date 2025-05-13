@@ -184,12 +184,12 @@ public class VenCalculator {
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set3 = Arrays.stream(("3291,3434,3073,3160,3089,3033,3325,3215,3117,3230,3248,3392,3260," +
+        Set<Integer> set3 = Arrays.stream(("3291,3434,3073,3160,3089,3325,3215,3117,3230,3248,3392,3260," +
                         "3266,3231,3114,3351,3411,3188,3168,3310,3297,3313,3194,3083,8,3066").split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3044".split(","))
+        Set<Integer> set4 = Arrays.stream("3033,3413,3323,3453,3278,3044".split(","))
                 .filter(i->StringUtils.isNumeric(i))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
