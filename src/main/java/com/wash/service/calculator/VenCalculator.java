@@ -44,15 +44,15 @@ public class VenCalculator {
         proportion_map0.put(310, 7);
         proportion_map0.put(430, 8);
         proportion_map0.put(560, 8);
-        proportion_map0.put(750, 9);
-        proportion_map0.put(980, 10);
-        proportion_map0.put(1270, 11);
-        proportion_map0.put(1580, 12);
-        proportion_map0.put(1980, 13);
-        proportion_map0.put(2600, 14);
-        proportion_map0.put(3200, 15);
+//        proportion_map0.put(750, 9);
+//        proportion_map0.put(980, 10);
+        proportion_map0.put(1270, 9);
+        proportion_map0.put(1580, 10);
+        proportion_map0.put(1980, 11);
+        proportion_map0.put(2600, 12);
+        proportion_map0.put(3200, 13);
         // 对于大于3200的情况，使用默认值
-        proportion_map0.put(Integer.MAX_VALUE, 16);
+        proportion_map0.put(Integer.MAX_VALUE, 14);
         
         // 初始化proportion_map1
         proportion_map1.put(80, 4);
@@ -61,15 +61,15 @@ public class VenCalculator {
         proportion_map1.put(280, 7);
         proportion_map1.put(400, 8);
         proportion_map1.put(510, 8);
-        proportion_map1.put(630, 9);
-        proportion_map1.put(820, 10);
-        proportion_map1.put(1080, 11);
-        proportion_map1.put(1400, 12);
-        proportion_map1.put(1800, 13);
-        proportion_map1.put(2400, 14);
-        proportion_map1.put(3200, 15);
+//        proportion_map1.put(630, 9);
+//        proportion_map1.put(820, 10);
+        proportion_map1.put(1080, 10);
+        proportion_map1.put(1400, 11);
+        proportion_map1.put(1800, 12);
+        proportion_map1.put(2400, 13);
+        proportion_map1.put(3200, 14);
         // 对于大于3200的情况，使用默认值
-        proportion_map1.put(Integer.MAX_VALUE, 16);
+        proportion_map1.put(Integer.MAX_VALUE, 15);
 
         proportion_map2.put(80, 5);
         proportion_map2.put(140, 6);
@@ -77,15 +77,15 @@ public class VenCalculator {
         proportion_map2.put(280, 8);
         proportion_map2.put(400, 9);
         proportion_map2.put(510, 10);
-        proportion_map2.put(630, 11);
-        proportion_map2.put(820, 12);
-        proportion_map2.put(1080, 13);
-        proportion_map2.put(1400, 14);
-        proportion_map2.put(1800, 15);
-        proportion_map2.put(2400, 17);
-        proportion_map2.put(3200, 18);
+//        proportion_map2.put(630, 11);
+//        proportion_map2.put(820, 12);
+        proportion_map2.put(1080, 11);
+        proportion_map2.put(1400, 12);
+        proportion_map2.put(1800, 13);
+        proportion_map2.put(2400, 14);
+        proportion_map2.put(3200, 15);
         // 对于大于3200的情况，使用默认值
-        proportion_map2.put(Integer.MAX_VALUE, 19);
+        proportion_map2.put(Integer.MAX_VALUE, 16);
 
 
 
@@ -95,13 +95,13 @@ public class VenCalculator {
         proportion_map3.put(280, 9);
         proportion_map3.put(400, 10);
         proportion_map3.put(510, 11);
-        proportion_map3.put(630, 12);
-        proportion_map3.put(820, 13);
-        proportion_map3.put(1080, 14);
-        proportion_map3.put(1400, 15);
-        proportion_map3.put(1800, 16);
-        proportion_map3.put(2400, 17);
-        proportion_map3.put(3200, 18);
+//        proportion_map3.put(630, 12);
+//        proportion_map3.put(820, 13);
+        proportion_map3.put(1080, 12);
+        proportion_map3.put(1400, 13);
+        proportion_map3.put(1800, 14);
+        proportion_map3.put(2400, 15);
+        proportion_map3.put(3200, 16);
         // 对于大于3200的情况，使用默认值
         proportion_map3.put(Integer.MAX_VALUE, 19);
 
@@ -111,15 +111,15 @@ public class VenCalculator {
         proportion_map4.put(280, 10);
         proportion_map4.put(400, 11);
         proportion_map4.put(510, 12);
-        proportion_map4.put(630, 13);
-        proportion_map4.put(820, 14);
-        proportion_map4.put(1080, 15);
-        proportion_map4.put(1400, 16);
-        proportion_map4.put(1800, 17);
-        proportion_map4.put(2400, 18);
-        proportion_map4.put(3200, 19);
+//        proportion_map4.put(630, 13);
+//        proportion_map4.put(820, 14);
+        proportion_map4.put(1080, 13);
+        proportion_map4.put(1400, 14);
+        proportion_map4.put(1800, 15);
+        proportion_map4.put(2400, 16);
+        proportion_map4.put(3200, 17);
         // 对于大于3200的情况，使用默认值
-        proportion_map4.put(Integer.MAX_VALUE, 20);
+        proportion_map4.put(Integer.MAX_VALUE, 18);
 
 
         proportion_map5.put(80, 7);
@@ -128,17 +128,17 @@ public class VenCalculator {
         proportion_map5.put(280, 10);
         proportion_map5.put(360, 11);
         proportion_map5.put(450, 12);
-        proportion_map5.put(570, 13);
-        proportion_map5.put(680, 14);
-        proportion_map5.put(820, 15);
-        proportion_map5.put(1080, 16);
-        proportion_map5.put(1400, 17);
-        proportion_map5.put(1800, 18);
-        proportion_map5.put(2200, 19);
-        proportion_map5.put(2600, 20);
-        proportion_map5.put(3000, 21);
+        proportion_map5.put(740, 13);
+//        proportion_map5.put(680, 14);
+//        proportion_map5.put(820, 15);
+        proportion_map5.put(1080, 14);
+        proportion_map5.put(1400, 15);
+        proportion_map5.put(1800, 16);
+        proportion_map5.put(2200, 17);
+        proportion_map5.put(2600, 18);
+        proportion_map5.put(3000, 19);
         // 对于大于3200的情况，使用默认值
-        proportion_map5.put(Integer.MAX_VALUE, 22);
+        proportion_map5.put(Integer.MAX_VALUE, 21);
 
         categoryMap.put(0, proportion_map0);
         categoryMap.put(1, proportion_map1);
@@ -150,14 +150,14 @@ public class VenCalculator {
     }
 
     
-    public DecData calculateAmount(int venId, double sum, Integer inputDecAmount) {
+    public DecData calculateAmount(int venId, double calAmount, Integer inputDecAmount) {
         int category = fromVen(venId);
         Map<Integer,Integer> proportionMap=categoryMap.get(category);
         if(proportionMap==null){
-            return new DecData(sum,0,inputDecAmount != null);
+            return new DecData(calAmount,0,inputDecAmount != null);
         }
         int divisor = 0;
-        double calSum = sum / 100;
+        double calSum = calAmount / 100;
 
         for (Map.Entry<Integer, Integer> entry : proportionMap.entrySet()) {
             if (calSum < entry.getKey()) {
@@ -165,9 +165,9 @@ public class VenCalculator {
                 break;
             }
         }
-        double calAmount = sum / divisor;
-        int decAmount = inputDecAmount != null ? inputDecAmount : (int) calAmount;//程序内限制的amount,需要同事满足两个
-        return new DecData(sum, decAmount, inputDecAmount != null);
+        double res = calAmount / divisor;
+        int decAmount = inputDecAmount != null ? inputDecAmount : (int) res;//程序内限制的amount,需要同事满足两个
+        return new DecData(calAmount, decAmount, inputDecAmount != null);
     }
 
     public int fromVen(int ven){

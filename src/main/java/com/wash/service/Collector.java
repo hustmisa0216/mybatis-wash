@@ -2,7 +2,6 @@ package com.wash.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.wash.cache.DateCache;
 import com.wash.entity.DecData;
 import com.wash.entity.Series;
 import com.wash.entity.constants.DeliveryMethodType;
@@ -14,7 +13,6 @@ import com.wash.mapper.*;
 import com.wash.service.calculator.VenCalculator;
 import com.wash.service.date.DateGenerator;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,24 +86,21 @@ public class Collector {
         }
     }
 
-    public  List<Series> buildSeries(int size, FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb, Integer inputVendorId, Integer inputDecAmount) throws Throwable {
+    public  List<Series> buildSeries(int size, FaSettlementTb faSettlementTb, FranchiseeSiteTb franchiseeSiteTb,
+                                     Integer inputVendorId, double calAmount, Integer inputDecAmount) throws Throwable {
         //STEP1:获取选定日期的pay
         List<PayTb> payTbList = getPayTbsByDate(faSettlementTb.getDate() + "", franchiseeSiteTb);
         List<Series> originSeries = genOriginSeries(payTbList, franchiseeSiteTb);
-
         List<Series> seriesList = null;
-        DoubleSummaryStatistics stats = payTbList.stream()
-                .collect(Collectors.summarizingDouble(PayTb::getAmount));
-        double sum = stats.getSum();
-
-        DecData decData = venCalculator.calculateAmount(inputVendorId,sum, inputDecAmount);
+        double sum=payTbList.stream().mapToDouble(i->i.getAmount()).sum();
+        DecData decData = venCalculator.calculateAmount(inputVendorId,calAmount, inputDecAmount);
         if(decData==null){
             return null;
         }
-        if(decData.getDecAmount()*3>sum){
-
+        if(!decData.isInputDec()&&decData.getDecAmount()*2>decData.getSum()){
             return null;
         }
+
         if (CollectionUtils.isEmpty(payTbList)) {
             return null;
         }
@@ -114,10 +109,12 @@ public class Collector {
 //            seriesList = collectSeries(list, franchiseeSiteTb, inputVendorId, inputDecAmount);
 //        } else {
         List<Series> list =collectSeries(originSeries, franchiseeSiteTb, inputVendorId, inputDecAmount);
-        if(CollectionUtils.isEmpty(list)&&sum>120*100){
+        if(CollectionUtils.isEmpty(list)&&calAmount>120*100){
             LOGGER.info("未收集到：res,{},{},{},{},{}",inputVendorId,franchiseeSiteTb.getSiteId(),faSettlementTb.getDate(),decData.getDecAmount(),decData.getSum());
         }
+
         seriesList = filterSeriesByAmount(list, decData);
+
 
         return seriesList;
     }
@@ -339,9 +336,11 @@ public class Collector {
                                       String commodityOrderId) {
         QueryWrapper<OrdersTb> ordersTbQueryWrapper = new QueryWrapper<>();
         //这里不能有site
+
         ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
-                .ge("created_at", commodityOrderTb.getCreatedAt())
-                .eq(StringUtils.isNotEmpty(commodityOrderId), "commodity_order_id", commodityOrderId);
+                .ge("created_at", commodityOrderTb.getCreatedAt());
+
+
         List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
         if(CollectionUtils.isEmpty(ordersTbs)){
             return null;
@@ -349,18 +348,14 @@ public class Collector {
         ordersTbs.sort((a,b)-> (int) (b.getCreatedAt()-a.getCreatedAt()));
 
         final long exp = expireTime;
-        List<OrdersTb> lastOrders = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(ordersTbs)) {
-            lastOrders = ordersTbs.stream().filter(i -> i.getCreatedAt() > exp).collect(Collectors.toList());
-        }
-        if (CollectionUtils.isNotEmpty(lastOrders)) {
-            long lastMonthTime = System.currentTimeMillis() / 1000 - 30 * 24 * 60 * 60;
-            boolean exists = lastOrders.stream().anyMatch(i -> i.getCreatedAt() > lastMonthTime);
-            if (exists) {
-                return null;
-            }
-        }
 
+
+        //只要最近一辆车24天内出现过，就是有效车辆
+        long lastMonthTime = (System.currentTimeMillis() / 1000) - 54 * 24 * 60 * 60;
+        boolean exists = ordersTbs.stream().anyMatch(i -> i.getCreatedAt() > lastMonthTime);
+        if (exists) {
+            return null;
+        }
 
         long start=commodityOrderProfitSharingTbs.get(0).getCreatedAt()-90*60;
         long end=commodityOrderProfitSharingTbs.get(commodityOrderProfitSharingTbs.size()-1).getCreatedAt()+15*60;

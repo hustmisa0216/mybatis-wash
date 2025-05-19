@@ -138,6 +138,7 @@ public class Selecter {
         List<DailyData> dailyDatas = new ArrayList<>();
 
         double amount=0;
+        double calAmount=0;
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
             if (todayData == null) {
@@ -158,7 +159,7 @@ public class Selecter {
                     }else {
                         decMerge= (int) ((lastDayRecharge + 2*lastDayEar) / 3);
                     }
-                    int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge:decMerge;
+                    calAmount= lastDayRecharge<lastDayEar?lastDayRecharge:decMerge;
                     amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
@@ -166,7 +167,7 @@ public class Selecter {
             } else {
                 if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 11400 || lastDayEar > 8200)) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
-                    int calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + lastDayEar) / 2);
+                    calAmount= lastDayRecharge<lastDayEar?lastDayRecharge: (int) ((lastDayRecharge + lastDayEar) / 2);
                     amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
                 }
@@ -197,7 +198,7 @@ public class Selecter {
         List<Series> resSeries=new ArrayList<>();
         for(DailyData dailyData:dailyDatas){
             if(dailyData!=null&&dailyData.getFaSettlementTb()!=null) {
-                resSeries = collector.buildSeries(size, dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId, inputDecAmount);
+                resSeries = collector.buildSeries(size, dailyData.getFaSettlementTb(), franchiseeSiteTb, inputVendorId,calAmount, inputDecAmount);
                 if (CollectionUtils.isNotEmpty(resSeries)) {
                     curDailyData = dailyData;
                     break;
@@ -211,10 +212,18 @@ public class Selecter {
             return;
         }
 
+
         if (judgeOandPLess(inputVendorId, res, franchiseeTb, franchiseeSiteTb,resSeries)){
             countDownLatch.countDown();
             return;
         }
+
+        Thread.sleep(10000000);
+        Thread.sleep(10000000);
+        Thread.sleep(10000000);
+        Thread.sleep(10000000);
+        Thread.sleep(10000000);
+        Thread.sleep(10000000);
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, curDailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);
