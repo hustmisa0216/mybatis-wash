@@ -191,9 +191,11 @@ public class Selecter {
             countDownLatch.countDown();
             return;
         }
+
+        if(todayData!=null){
         taskRecord.getCurRe().addAndGet(todayData.getSiteLatestDataTb().getRechargeAmount()/100);
         taskRecord.getCurIn().addAndGet(todayData.getLastDayEar()/100);
-
+        }
         DailyData curDailyData =null;
         List<Series> resSeries=new ArrayList<>();
         for(DailyData dailyData:dailyDatas){
@@ -314,7 +316,7 @@ public class Selecter {
         QueryWrapper<DailyPaperTb> dailyPaperTbQueryWrapper = new QueryWrapper();
         dailyPaperTbQueryWrapper
                 .eq("site_id", siteId)
-                .le("date", inputDate);
+                .eq("date", inputDate);
         return dailyPaperTbMapper.selectList(dailyPaperTbQueryWrapper).get(0);
     }
 
@@ -345,7 +347,10 @@ public class Selecter {
         List<DailyData> dailyDatas=new ArrayList<>();
         long lastDateTime = (System.currentTimeMillis() / 1000) - 25 * 24 * 60 * 60;
         int lastDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(lastDateTime * 1000)));
-        int dayBefore=inputVendorId.intValue()==3191?320:540;
+        int dayBefore=inputVendorId.intValue()==3191?320:560;
+        if(inputVendorId.intValue()==3265||inputVendorId.intValue()==3325){
+            dayBefore=720;
+        }
         long firstTime = System.currentTimeMillis() / 1000 - dayBefore * 24 * 60 * 60;
         int firstDate = Integer.valueOf(SIMPLE_DATE_FORMAT.format(new Date(firstTime * 1000)));
 
@@ -383,7 +388,7 @@ public class Selecter {
                     }
                 }
             }
-            if(dailyDatas.size()>2){
+            if(dailyDatas.size()>3){
                 return dailyDatas;
             }
         }
