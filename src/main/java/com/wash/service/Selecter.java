@@ -220,12 +220,6 @@ public class Selecter {
             return;
         }
 
-        Thread.sleep(10000000);
-        Thread.sleep(10000000);
-        Thread.sleep(10000000);
-        Thread.sleep(10000000);
-        Thread.sleep(10000000);
-        Thread.sleep(10000000);
 
         ModifierData modifierData = updateAndDel(inputVendorId, franchiseeSiteTb, curDailyData, resSeries, franchiseeTb);
         updateFranchisee(inputVendorId, franchiseeSiteTb, modifierData);

@@ -93,7 +93,7 @@ public class CommodityOrdersTb implements Serializable {
                 String.valueOf(priceTotal),
                 String.valueOf(refundAmount),
                 String.valueOf(createdAt),
-                String.valueOf(deletedAt),
+                deletedAt!= null? String.valueOf(deletedAt) : "",
                 String.valueOf(updatedAt),
                 String.valueOf(vipDuration),
                 String.valueOf(vipExpiredAt),

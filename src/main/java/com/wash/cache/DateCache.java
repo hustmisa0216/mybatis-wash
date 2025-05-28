@@ -1,7 +1,13 @@
 package com.wash.cache;
 
+import com.alibaba.fastjson.JSON;
+import com.charge.entity.Pay;
 import com.charge.entity.SiteLatestData;
+import com.wash.entity.ModifierData;
+import com.wash.entity.Series;
 import com.wash.entity.constants.FilesEnum;
+import com.wash.entity.data.OrdersTb;
+import com.wash.entity.data.PayTb;
 import com.wash.service.Recorder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +17,7 @@ import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -113,7 +120,6 @@ public class DateCache {
        // System.out.println(SITE_DATE_MAP);
     }
 
-
     @PostConstruct
     public void reloadC() throws IOException {
         File baseDir = new File(C_FILE_PATH);
@@ -181,8 +187,50 @@ public class DateCache {
             }
         }}
 
-    public static void main(String[] args) {
-        String []v=null;
-        Arrays.stream(v);
+    public static void main(String[] args) throws IOException {
+        String path="D:\\818\\";
+        File baseDir = new File(path);
+        File[] originDirectories = baseDir.listFiles(File::isDirectory);
+
+        for(File file:originDirectories){
+            if (file.isDirectory()) {
+                System.out.println(file.getName());
+                if(file.getName().equals("20231115")){
+                File[] files = file.listFiles();
+                for (File file1 : files) {
+//                    if (file1.getName().contains("order")) {
+//                        List<String> lines = Files.readAllLines(file1.toPath());
+//                        for (String line : lines) {
+//                            String v[] = line.split(",");
+//                            if (v.length < 8) {
+//                                continue;
+//                            }
+//                            OrdersTb ordersTb = OrdersTb.fromString(line);
+//                            if (ordersTb.getUid().equals("10874213")) {
+//                                System.out.println(ordersTb);
+//                            }
+//                             //   System.out.println(ordersTb);
+//                        }
+//                    }
+
+                    if (file1.getName().contains("pay")) {
+                        List<String> lines = Files.readAllLines(file1.toPath());
+                        for (String line : lines) {
+                            String v[] = line.split(",");
+                            if (v.length < 2) {
+                                continue;
+                            }
+                            PayTb paytb = PayTb.fromString(line);
+                            if (paytb.getUid().intValue()==10874213){
+                                System.out.println(paytb);
+                            }
+                            //System.out.println(paytb);
+                        }
+                    }
+                }
+                }
+            }
+        }
+
     }
 }
