@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
@@ -40,10 +41,11 @@ import java.util.stream.IntStream;
 @Component
 @DS("wash")
 public class Start {
-    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+    private static  SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
-    @Autowired    public  static final String FILE_PATH = "D:\\mogo\\channel\\";
+    public  static final String FILE_PATH = "D:\\mogo\\channel\\";
 
+    @Autowired
     private ChannelSiteTbMapper channelSiteTbMapper;
     @Autowired
     private OrdersTbMapper ordersTbMapper;
@@ -71,8 +73,15 @@ public class Start {
         QueryWrapper<ChannelSiteTb> channelSiteTbQueryWrapper = new QueryWrapper<>();
         channelSiteTbQueryWrapper.eq("channel_id", channelId).isNull("deleted_at");
         List<ChannelSiteTb> channelSiteTbList = channelSiteTbMapper.selectList(channelSiteTbQueryWrapper);
-
-
+        // 构建目标目录路径
+        String dirPath = FILE_PATH + startDate + "-" + endDate;
+        File dir = new File(dirPath);
+        // 检查目录是否存在，不存在则创建
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new IOException("无法创建目录: " + dirPath);
+            }
+        }
         FileWriter commoOrderWriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.COMMODITY_ORDER_DATA.getFileName(), true);
         FileWriter orderWriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.ORDERSTB_DATA.getFileName(), true);
 
@@ -135,8 +144,11 @@ public class Start {
                 }
             }
 
-            for (int date : cAmountMap.keySet()) {
-                CAmount cAmount = cAmountMap.get(date);
+            Iterator<Map.Entry<Integer, CAmount>> iterator = cAmountMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<Integer, CAmount> entry = iterator.next();
+                int date = entry.getKey();
+                CAmount cAmount = entry.getValue();
                 if (cAmount.getPreAmount().get() == 0 && cAmount.getPreAmount().get() == 0) {
                     continue;
                 }
@@ -146,15 +158,16 @@ public class Start {
                         .eq("date", date);
                 List<EnsureIncomeTb> ensureIncomeTbs=ensureIncomeTbMapper.selectList(queryWrapper);
                 if(CollectionUtils.isEmpty(ensureIncomeTbs)){
-                    cAmountMap.remove(date);
+                   iterator.remove();
                 }else{
                     double sum=ensureIncomeTbs.stream().mapToDouble(EnsureIncomeTb::getPrepaidMoney).sum();
                     double sumvip=ensureIncomeTbs.stream().mapToDouble(EnsureIncomeTb::getVipMoney).sum();
                     if(sum<cAmount.getPreAmount().get()){
-                        cAmountMap.remove(date);
+                        iterator.remove();
+                        continue;
                     }
                     if(sumvip<cAmount.getVipAmount().get()){
-                        cAmountMap.remove(date);
+                        iterator.remove();
                     }
                 }
             }

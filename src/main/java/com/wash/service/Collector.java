@@ -258,7 +258,6 @@ public class Collector {
                 userTbMapper.update(null,userTbUpdateWrapper);
             }
 
-
             QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
             commodityOrderProfitSharingTbQueryWrapper
                     .eq("order_id", commodityOrderTb.getOrderId());
@@ -340,7 +339,6 @@ public class Collector {
         ordersTbQueryWrapper.eq("uid", commodityOrderTb.getUid())
                 .ge("created_at", commodityOrderTb.getCreatedAt());
 
-
         List<OrdersTb> ordersTbs = ordersTbMapper.selectList(ordersTbQueryWrapper);
         if(CollectionUtils.isEmpty(ordersTbs)){
             return null;
@@ -349,12 +347,11 @@ public class Collector {
 
         final long exp = expireTime;
 
-
         //只要最近一辆车24天内出现过，就是有效车辆
         long lastMonthTime = (System.currentTimeMillis() / 1000) - 54 * 24 * 60 * 60;
         boolean exists = ordersTbs.stream().anyMatch(i -> i.getCreatedAt() > lastMonthTime);
         if (exists) {
-            return null;
+           // return null;
         }
 
         long start=commodityOrderProfitSharingTbs.get(0).getCreatedAt()-90*60;
@@ -379,7 +376,7 @@ public class Collector {
         return resOrdersTbs;
     }
 
-    private CommodityOrdersTb fillCO(Series series, PayTb payTb) {
+    public CommodityOrdersTb fillCO(Series series, PayTb payTb) {
         QueryWrapper<CommodityOrdersTb> commodityOrderTbQueryWrapper = new QueryWrapper<>();
         commodityOrderTbQueryWrapper.eq("pay_sn", payTb.getPaySn()).eq("site_id", payTb.getSiteId());
         List<CommodityOrdersTb> commodityOrderTbs = commodityOrdersTbMapper.selectList(commodityOrderTbQueryWrapper);

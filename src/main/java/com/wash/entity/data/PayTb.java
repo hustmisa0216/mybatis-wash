@@ -3,10 +3,11 @@ package com.wash.entity.data;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.wash.entity.BaseEntity;
 import lombok.Data;
 
 @Data
-public class PayTb {
+public class PayTb   extends BaseEntity {
     @TableId(type = IdType.AUTO)
     private Integer id; // 用户ID
 

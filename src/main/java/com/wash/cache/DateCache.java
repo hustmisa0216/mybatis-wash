@@ -86,7 +86,7 @@ public class DateCache {
                                             all = Integer.valueOf(vs1[1]);
                                         }
                                         String vs[] = v.replace("(", "").replace(")", "").split("-");
-                                        if (vs.length > 2) {
+                                        if (vs.length > 2&&StringUtils.isNotBlank(vs[2])) {
                                             totalPay += Integer.valueOf(vs[1]);
                                             totalAmount += Integer.valueOf(vs[2]);
                                         }
@@ -188,14 +188,14 @@ public class DateCache {
         }}
 
     public static void main(String[] args) throws IOException {
-        String path="D:\\818\\";
+        String path="D:\\946\\";
         File baseDir = new File(path);
         File[] originDirectories = baseDir.listFiles(File::isDirectory);
 
         for(File file:originDirectories){
             if (file.isDirectory()) {
-                System.out.println(file.getName());
-                if(file.getName().equals("20231115")){
+                //System.out.println(file.getName());
+               // if(file.getName().equals("20231115")){
                 File[] files = file.listFiles();
                 for (File file1 : files) {
 //                    if (file1.getName().contains("order")) {
@@ -221,14 +221,14 @@ public class DateCache {
                                 continue;
                             }
                             PayTb paytb = PayTb.fromString(line);
-                            if (paytb.getUid().intValue()==10874213){
-                                System.out.println(paytb);
+                            if (paytb.getUid().intValue()==11567752){
+                               System.out.println(paytb);
                             }
                             //System.out.println(paytb);
                         }
                     }
                 }
-                }
+
             }
         }
 

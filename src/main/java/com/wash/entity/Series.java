@@ -4,6 +4,7 @@ import com.wash.entity.data.*;
 import com.wash.entity.franchisee.FranchiseeSiteTb;
 import com.wash.entity.u.UserTb;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
  * @Description
  */
 @Data
+@NoArgsConstructor
 public class Series {
     private PayTb payTb;
     private CommodityOrdersTb commodityOrderTb;
@@ -28,6 +30,7 @@ public class Series {
 
     private UserTb userTb;
     private List<PayTb> uPaytbs=new ArrayList<>();
+
 
     public Series(PayTb payTb,FranchiseeSiteTb franchiseeSiteTb) {
         this.payTb = payTb;

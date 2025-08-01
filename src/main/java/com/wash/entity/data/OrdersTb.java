@@ -1,10 +1,11 @@
 package com.wash.entity.data;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.wash.entity.BaseEntity;
 import lombok.Data;
 
 @Data
-public class OrdersTb {
+public class OrdersTb   extends BaseEntity {
 
     private Integer id;
     private String orderId;
