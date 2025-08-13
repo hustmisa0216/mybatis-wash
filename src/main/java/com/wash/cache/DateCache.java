@@ -86,7 +86,7 @@ public class DateCache {
                                             all = Integer.valueOf(vs1[1]);
                                         }
                                         String vs[] = v.replace("(", "").replace(")", "").split("-");
-                                        if (vs.length > 2&&StringUtils.isNotBlank(vs[2])) {
+                                        if(vs.length > 2&&StringUtils.isNotBlank(vs[2])) {
                                             totalPay += Integer.valueOf(vs[1]);
                                             totalAmount += Integer.valueOf(vs[2]);
                                         }
@@ -172,7 +172,6 @@ public class DateCache {
                                                 }
                                             }
                                         }
-
                                         if (totalCount > 5 || totalAmount > 5800) {
                                             C_DATE_MAP
                                                     .computeIfAbsent(Integer.valueOf(vendorId), k -> new HashSet<>())
