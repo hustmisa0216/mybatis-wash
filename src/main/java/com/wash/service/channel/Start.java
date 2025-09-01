@@ -8,6 +8,7 @@ import com.wash.entity.constants.FilesEnum;
 import com.wash.entity.data.CommodityOrderProfitSharingTb;
 import com.wash.entity.data.CommodityOrdersTb;
 import com.wash.entity.data.OrdersTb;
+import com.wash.entity.data.PayTb;
 import com.wash.entity.site.SiteTb;
 import com.wash.entity.statistics.EnsureIncomeTb;
 import com.wash.mapper.*;
@@ -47,6 +48,9 @@ public class Start {
 
     @Autowired
     private ChannelSiteTbMapper channelSiteTbMapper;
+
+    @Autowired
+    private PayTbMapper payTbMapper;
     @Autowired
     private OrdersTbMapper ordersTbMapper;
     @Autowired
@@ -84,6 +88,7 @@ public class Start {
         }
         FileWriter commoOrderWriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.COMMODITY_ORDER_DATA.getFileName(), true);
         FileWriter orderWriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.ORDERSTB_DATA.getFileName(), true);
+        FileWriter paywriter = new FileWriter(FILE_PATH +startDate+"-"+endDate+"\\"+ FilesEnum.PAYTB_DATA.getFileName(), true);
 
         List<Integer> siteIds;
         if (CollectionUtils.isEmpty(channelSiteTbList)) {
@@ -115,7 +120,7 @@ public class Start {
             Map<Integer, List<OrderEntity>> resMap = commodityDateMap.entrySet()
                     .stream().collect(Collectors.toMap(Map.Entry::getKey, // 保留原来的键
                     entry -> IntStream.range(0, entry.getValue().size()) // 获取索引范围
-                            .filter(i -> i % 2 == 0 || i % 5 == 0) // 过滤出索引为 3 的倍数
+                            .filter(i -> i % 2 == 0) // 过滤出索引为 3 的倍数
                             .mapToObj(entry.getValue()::get) // 获取对应的订单对象
                             .collect(Collectors.toList()) // 收集为列表
             ));
@@ -125,12 +130,14 @@ public class Start {
             List<CommodityOrdersTb> allCommodityOrdersTbList = new ArrayList<>();
             List<OrdersTb> allOrders = new ArrayList<>();
 
+            List<PayTb> payTbs=new ArrayList<>();
             for (int date : resMap.keySet()) {
                 List<OrderEntity> orderEntities = resMap.get(date);
 
                 for (OrderEntity orderEntity : orderEntities) {
                     allCommodityOrdersTbList.add(orderEntity.getCommodityOrdersTb());
                     allOrders.addAll(orderEntity.getOrdersTbs());
+                    payTbs.add(orderEntity.getPayTb());
                     List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs = orderEntity.getCommodityOrderProfitSharingTbs();
                     DeliveryMethodType deliveryMethodType = DeliveryMethodType.from(commodityOrderProfitSharingTbs.get(0).getDeliveryMethod());
                     if (deliveryMethodType == DeliveryMethodType.VIP_TIME) {
@@ -199,6 +206,7 @@ public class Start {
                 });
                 commodityOrdersTbMapper.deleteBatchIds(allCommodityOrdersTbList);
             }
+
             if (CollectionUtils.isNotEmpty(allOrders)) {
                 allOrders.stream().forEach(i -> {
                     try {
@@ -210,6 +218,17 @@ public class Start {
                 });
                 ordersTbMapper.deleteBatchIds(allOrders);
             }
+            if (CollectionUtils.isNotEmpty(payTbs)) {
+                allOrders.stream().forEach(i -> {
+                    try {
+                        paywriter.write(i.toString() + "\n");
+                        paywriter.flush();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                });
+                payTbMapper.deleteBatchIds(payTbs);
+            }
         }
         return null;
     }
@@ -218,7 +237,14 @@ public class Start {
 
         List<OrderEntity> res=new ArrayList<>();
         for(CommodityOrdersTb commodityOrderTb: commodityOrdersTbs) {
+            QueryWrapper<PayTb> payTbQueryWrapper = new QueryWrapper<>();
+            payTbQueryWrapper.in("site_id", siteIds)
+                    .eq("pay_sn", commodityOrderTb.getPaySn());
+            List<PayTb> payTbs=payTbMapper.selectList(payTbQueryWrapper);
 
+            if (CollectionUtils.isEmpty(payTbs)) {
+                continue;
+            }
             QueryWrapper<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbQueryWrapper = new QueryWrapper<>();
             commodityOrderProfitSharingTbQueryWrapper.in("site_id", siteIds)
                     .eq("order_id", commodityOrderTb.getOrderId());
@@ -248,7 +274,7 @@ public class Start {
             if (commodityOrderTb.getPaymentMoney().intValue() == sum || expireTime < System.currentTimeMillis() / 1000 - 60 * 60 * 24 * 9) {
                 List<OrdersTb> ordersTbs = collector.fillOrders(commodityOrderTb, commodityOrderProfitSharingTbs, deliveryMethodType, expireTime, commodityOrderId);
                 if (CollectionUtils.isNotEmpty(ordersTbs)) {
-                    res.add(new OrderEntity(commodityOrderTb, commodityOrderProfitSharingTbs, ordersTbs));
+                    res.add(new OrderEntity(commodityOrderTb, commodityOrderProfitSharingTbs, ordersTbs,payTbs.get(0)));
                 }
             }
         }

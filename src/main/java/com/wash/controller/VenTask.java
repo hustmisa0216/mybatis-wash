@@ -45,6 +45,7 @@ public class VenTask {
                 int ven=Integer.valueOf(ss[0]);
                 int com=Integer.valueOf(ss[1]);
                 TaskRecord taskRecord=map.computeIfAbsent(Integer.valueOf(ven), k->new TaskRecord(ven));
+                taskRecord.setFromTask(true);
                 try{
                     String tt=selecter.select(taskRecord, Integer.valueOf(com), null, null);
                     System.out.println("res:"+tt+"\n");

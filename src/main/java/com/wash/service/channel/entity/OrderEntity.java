@@ -25,6 +25,7 @@ public class OrderEntity {
     private CommodityOrdersTb commodityOrdersTb;
     private List<CommodityOrderProfitSharingTb> commodityOrderProfitSharingTbs;
     private List<OrdersTb> ordersTbs;
+    private PayTb payTb;
 
 
 

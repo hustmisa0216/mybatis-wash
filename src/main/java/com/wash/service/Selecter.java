@@ -89,7 +89,7 @@ public class Selecter {
         StringBuffer res = new StringBuffer();
         FranchiseeTb franchiseeTb = franchiseeTbMapper.selectById(inputVendorId);
 
-        if(franchiseeTb.getWaitWithdraw()<1390*100){
+        if(franchiseeTb.getWaitWithdraw()<1390*100&&taskRecord.isFromTask()){
             LOGGER.info("res,{},太低导致无线路可用:{}",inputVendorId,franchiseeTb.getWaitWithdraw()/100);
             return "无路线可用";
         }
@@ -141,11 +141,11 @@ public class Selecter {
         double calAmount=0;
         if (inputDate == null) {
             todayData = getTodayIncome(franchiseeSiteTb, inputVendorId);
-            if (todayData == null) {
+            if (todayData == null&&inputDecAmount==null) {
                 countDownLatch.countDown();
                 return;
             }
-            double lastDayEar = todayData.getLastDayEar();
+            double lastDayEar =todayData==null?inputDecAmount:todayData.getLastDayEar();
             if (size > 2) {
                 if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 9600||lastDayEar<0) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();

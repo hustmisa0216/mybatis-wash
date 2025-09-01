@@ -26,6 +26,7 @@ public class TaskRecord {
     public TaskRecord(int ven){
       this.ven=ven;
     }
+    boolean fromTask=false;
 
     public  String genRecord(){
         return date + "  ,  " + ven + "  ,  " + dec+"  ,  "+curRe.get()+"  ,  " +curIn.get()+ "  ,  "+percent+"%";
