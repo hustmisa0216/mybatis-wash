@@ -19,21 +19,35 @@ import java.util.stream.Collectors;
     //计算追踪距离超参数阈值、针对车类别设定不同的阈值
     @Component
 public class CharCalculator {
+    private static final LinkedHashMap<Integer,Integer> proportion_map0=new LinkedHashMap<>();
 
     private static final LinkedHashMap<Integer,Integer> proportion_map1=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map2=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map3=new LinkedHashMap<>();
     private static final LinkedHashMap<Integer,Integer> proportion_map4=new LinkedHashMap<>();
 
-//    private static final Map<Integer,Integer> constants_map1=new HashMap<>();
-//    private static final Map<Integer,Integer> constants_map2=new HashMap<>();
-//    private static final Map<Integer,Integer> constants_map3=new HashMap<>();
-//    private static final Map<Integer,Integer> constants_map4=new HashMap<>();
+    private static final Map<Integer,Integer> constants_map1=new HashMap<>();
+    private static final Map<Integer,Integer> constants_map2=new HashMap<>();
+    private static final Map<Integer,Integer> constants_map3=new HashMap<>();
+    private static final Map<Integer,Integer> constants_map4=new HashMap<>();
 
     private static final Map<Integer, LinkedHashMap<Integer, Integer>> categoryMap = new HashMap<>();
 
     @PostConstruct
     public void fillMap(){
+
+        // 初始化proportion_map0
+        proportion_map1.put(80, 2);
+        proportion_map1.put(150, 3);
+        proportion_map1.put(240, 4);
+        proportion_map1.put(320, 5);
+        proportion_map1.put(450, 6);
+        proportion_map1.put(660,7);
+        proportion_map1.put(800, 8);
+        proportion_map1.put(1200, 9);
+        proportion_map1.put(1400, 10);
+        proportion_map1.put(2000, 12);
+
         // 初始化proportion_map1
         proportion_map1.put(60, 4);
         proportion_map1.put(100, 5);
@@ -111,7 +125,8 @@ public class CharCalculator {
 
     public double calculateAmount(int venId, SelectInfo selectInfo, Integer inputDecAmount) {
 
-        Map<Integer,Integer> proportionMap=categoryMap.get(1);
+        int cata=fromVen(venId);
+        Map<Integer,Integer> proportionMap=categoryMap.get(cata);
         double vendorIncome= selectInfo.getAmount();
         int divisor = 0;
         double calSum = vendorIncome / 100;
@@ -129,18 +144,20 @@ public class CharCalculator {
 
 
     public int fromVen(int ven){
-        Set<Integer> set1 = Arrays.stream("3225,3191,3433,3353,3243,3250,3203,3229,3024".split(","))
+        Set<Integer> set0 = Arrays.stream("29,10".split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set2 = Arrays.stream(("3190,3362,3361,3300,3122,3258,3205,3177,3280,3390,3092,3308,3287,3283,3382,3223,3100,3166,3114" +
+        Set<Integer> set1 = Arrays.stream("".split(","))
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+        Set<Integer> set2 = Arrays.stream(("" +
                         "").split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set3 = Arrays.stream(("3073,3160,3089,3033,3265,3325,3215,3117,3230,3248,3221,3392,3260," +
-                        "3266,3231,3114,3351,3411,3188,3168,3310,3297,3313,3194,3083,8,3066").split(","))
+        Set<Integer> set3 = Arrays.stream(("").split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
-        Set<Integer> set4 = Arrays.stream("3323,3453,3278,3291,3044,3422,3434".split(","))
+        Set<Integer> set4 = Arrays.stream("".split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
 
@@ -154,7 +171,7 @@ public class CharCalculator {
         }else if(set4.contains(ven)){
             return 4;
         }
-        return 4;//默认类别3
+        return 1;//默认类别3
 
     }
 
