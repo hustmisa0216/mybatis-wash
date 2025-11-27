@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
-@MapperScan("com.") // 替换为你的 Mapper 包路径
+@MapperScan({"com.wash.mapper", "com.charge.mapper", "com.wash.mapper.channel"}) // 只扫描实际的 Mapper 包
 public class MyBatisPlusConfig {
 
     @Bean

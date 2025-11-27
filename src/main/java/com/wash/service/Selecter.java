@@ -147,7 +147,7 @@ public class Selecter {
             }
             double lastDayEar =todayData==null?inputDecAmount:todayData.getLastDayEar();
             if (size > 2) {
-                if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 9600||lastDayEar<0) {
+               // if (todayData.getSiteLatestDataTb().getRechargeAmount() > 13800 || lastDayEar > 9600||lastDayEar<0) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
                     int decMerge=0;
                     if(lastDayEar<100){
@@ -162,8 +162,7 @@ public class Selecter {
                     calAmount= lastDayRecharge<lastDayEar?lastDayRecharge:decMerge;
                     amount = inputDecAmount == null ? calAmount : inputDecAmount.intValue() * 3;
                     dailyDatas = selectHistoryDate(franchiseeSiteTb, amount, inputVendorId, inputDecAmount);
-                }
-
+           //     }
             } else {
                 if (inputVendorId.intValue()==11||(todayData.getSiteLatestDataTb().getRechargeAmount() > 11400 || lastDayEar > 8200)) {
                     int lastDayRecharge=todayData.getSiteLatestDataTb().getRechargeAmount();
@@ -246,6 +245,7 @@ public class Selecter {
             boolean allSame=resSeries.stream().allMatch(i->i.getParentVen()==parentId);
             if(!allSame){
                 LOGGER.info("res,{},{},lessReasonNotSame:{},{}", inputVendorId,franchiseeSiteTb.getSiteId(),parentId,resSeries);
+
                 return true;
             }
             FranchiseeTb parentFranchiseeSiteTb = franchiseeTbMapper.selectById(parentId);

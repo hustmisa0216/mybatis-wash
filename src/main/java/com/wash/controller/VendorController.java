@@ -35,7 +35,6 @@ public class VendorController {
         if(inputDecAmount!=null){
             if(inputDecAmount<5||inputDecAmount>300){
                 return ResponseEntity.ok("謹慎取值");
-
             }
             inputDecAmount=inputDecAmount*100;
         }
